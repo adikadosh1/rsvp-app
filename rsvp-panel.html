@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הושבה כיד המלך — פאנל ניהול</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #2a2a2e;
+  --bg2:     #252528;
+  --surface: #1e1e21;
+  --surface2:#2f2f33;
+  --surface3:#383838;
+  --border:  rgba(212,175,55,0.14);
+  --border2: rgba(212,175,55,0.3);
+  --border3: rgba(212,175,55,0.55);
+  --gold:    #D4AF37;
+  --gold2:   #F0D060;
+  --gold3:   #A08020;
+  --white:   #F5F0E8;
+  --white2:  #C8C0A8;
+  --white3:  #8a8070;
+  --green:   #4CAF80;
+  --red:     #C0504A;
+  --amber:   #C89830;
+  --radius:  14px;
+  --rsm:     8px;
+}
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Subtle gold glow in corners */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 75% 5%, rgba(212,175,55,0.055) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 5%  90%, rgba(160,128,32,0.04) 0%, transparent 55%);
+  pointer-events:none; z-index:0;
+  animation: breathe 9s ease-in-out infinite alternate;
+}
+@keyframes breathe { 0%{opacity:.55} 100%{opacity:1} }
+
+.gold-line { position:fixed; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold2),var(--gold),var(--gold3),transparent); z-index:999; }
+
+.sidebar,.main,.modal-overlay { position:relative; z-index:1; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width:250px; background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding:26px 0;
+  position:fixed; right:0; top:0; height:100vh; z-index:100;
+}
+.logo { padding:0 22px 24px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+.logo-eyebrow { font-size:10px; letter-spacing:.28em; color:var(--gold3); text-transform:uppercase; margin-bottom:6px; }
+.logo-text { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--white); line-height:1; }
+.logo-text span { background:linear-gradient(135deg,var(--gold),var(--gold2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.logo-sub { font-size:11px; color:var(--white3); margin-top:5px; letter-spacing:.04em; }
+
+.nav-section { font-size:10px; color:var(--gold3); padding:14px 22px 5px; text-transform:uppercase; letter-spacing:.18em; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:10px 22px; font-size:13px; color:var(--white3); cursor:pointer; transition:all .15s; border-right:2px solid transparent; margin:1px 0; letter-spacing:.02em; }
+.nav-item:hover { background:rgba(212,175,55,0.05); color:var(--white2); }
+.nav-item.active { background:rgba(212,175,55,0.09); color:var(--gold); border-right-color:var(--gold); }
+.nav-icon { font-size:14px; width:18px; text-align:center; }
+
+.sidebar-footer { margin-top:auto; padding:18px 22px; border-top:1px solid var(--border); }
+.user-badge { display:flex; align-items:center; gap:11px; }
+.avatar { width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold3); background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--gold); }
+.user-name { font-size:13px; font-weight:600; color:var(--white2); }
+.user-plan { font-size:10px; letter-spacing:.12em; color:var(--gold); text-transform:uppercase; margin-top:2px; }
+
+/* ===== MAIN ===== */
+.main { margin-right:250px; flex:1; padding:34px; max-width:calc(100vw - 250px); }
+
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; }
+.page-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--white); letter-spacing:.01em; }
+.page-sub { font-size:13px; color:var(--white3); margin-top:4px; letter-spacing:.03em; }
+
+.btn { display:inline-flex; align-items:center; gap:7px; padding:10px 18px; border-radius:var(--rsm); font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:'Heebo',sans-serif; transition:all .18s; letter-spacing:.03em; }
+.btn-gold { background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2)); color:#0a0a0a; }
+.btn-gold:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(212,175,55,.28); }
+.btn-ghost { background:transparent; color:var(--white2); border:1px solid var(--border2); }
+.btn-ghost:hover { border-color:var(--border3); color:var(--white); background:rgba(212,175,55,.05); }
+.preview-btn { display:inline-flex; align-items:center; gap:6px; background:transparent; border:1px solid var(--border2); color:var(--gold); padding:10px 16px; border-radius:var(--rsm); font-size:13px; font-weight:600; cursor:pointer; font-family:'Heebo',sans-serif; transition:all .18s; letter-spacing:.03em; }
+.preview-btn:hover { background:rgba(212,175,55,.08); border-color:var(--border3); }
+
+/* Event banner */
+.event-info { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); padding:20px 24px; margin-bottom:22px; position:relative; overflow:hidden; }
+.event-info::before { content:''; position:absolute; top:0; right:0; width:200px; height:100%; background:linear-gradient(90deg,transparent,rgba(212,175,55,.03)); pointer-events:none; }
+.event-name { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--white); margin-bottom:4px; }
+.event-meta { font-size:12px; color:var(--white3); letter-spacing:.02em; }
+.progress-wrap { margin-top:16px; }
+.progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--white3); margin-bottom:7px; letter-spacing:.03em; }
+.progress-bar { height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold2)); }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; margin-bottom:22px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; transition:border-color .2s; }
+.stat-card:hover { border-color:var(--border2); }
+.stat-card::after { content:''; position:absolute; bottom:0; right:0; width:45px; height:45px; border-radius:50% 0 0 0; opacity:.07; }
+.stat-card.gold::after{background:var(--gold);} .stat-card.g::after{background:var(--green);} .stat-card.r::after{background:var(--red);} .stat-card.a::after{background:var(--amber);}
+.stat-divider { width:22px; height:1px; margin-bottom:10px; background:linear-gradient(90deg,var(--gold3),transparent); }
+.stat-label { font-size:10px; color:var(--white3); margin-bottom:9px; font-weight:500; text-transform:uppercase; letter-spacing:.12em; }
+.stat-value { font-family:'Playfair Display',serif; font-size:32px; font-weight:700; letter-spacing:-1px; line-height:1; }
+.sv-gold{color:var(--gold);} .sv-g{color:var(--green);} .sv-r{color:var(--red);} .sv-a{color:var(--amber);}
+.stat-change { font-size:11px; color:var(--white3); margin-top:7px; }
+
+/* Layout */
+.two-col { display:grid; grid-template-columns:1fr 375px; gap:18px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.card-title { font-size:13px; font-weight:600; color:var(--white2); letter-spacing:.05em; display:flex; align-items:center; gap:8px; }
+.card-title::before { content:''; width:3px; height:13px; background:linear-gradient(180deg,var(--gold),var(--gold3)); border-radius:2px; display:inline-block; }
+.card-body { padding:20px; }
+
+/* Table */
+.guests-table { width:100%; border-collapse:collapse; }
+.guests-table th { text-align:right; padding:10px 16px; font-size:10px; color:var(--gold3); font-weight:600; text-transform:uppercase; letter-spacing:.12em; border-bottom:1px solid var(--border); }
+.guests-table td { padding:13px 16px; font-size:13px; border-bottom:1px solid var(--border); }
+.guests-table tr:last-child td { border-bottom:none; }
+.guests-table tr:hover td { background:rgba(212,175,55,.03); }
+.status-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:.04em; }
+.b-come { background:rgba(76,175,128,.1); color:var(--green); border:1px solid rgba(76,175,128,.2); }
+.b-no   { background:rgba(192,80,74,.1); color:var(--red); border:1px solid rgba(192,80,74,.2); }
+.b-may  { background:rgba(200,152,48,.1); color:var(--amber); border:1px solid rgba(200,152,48,.2); }
+.b-pend { background:rgba(138,128,112,.1); color:var(--white3); border:1px solid rgba(138,128,112,.2); }
+.g-name { font-weight:600; color:var(--white); font-size:13px; }
+.g-phone { font-size:11px; color:var(--white3); margin-top:2px; direction:ltr; text-align:right; }
+
+.tabs { display:flex; gap:3px; background:var(--surface2); padding:4px; border-radius:var(--rsm); width:fit-content; }
+.tab { padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--white3); transition:all .15s; letter-spacing:.03em; }
+.tab.active { background:var(--surface3); color:var(--gold); }
+
+/* Upload zone */
+.upload-zone { border:1px dashed var(--border2); border-radius:var(--radius); padding:22px; text-align:center; cursor:pointer; transition:all .2s; }
+.upload-zone:hover { border-color:var(--border3); background:rgba(212,175,55,.03); }
+.upload-icon { font-size:28px; margin-bottom:8px; opacity:.7; }
+.upload-title { font-size:14px; font-weight:600; color:var(--white2); margin-bottom:3px; }
+.upload-sub { font-size:12px; color:var(--white3); }
+
+/* Image upload */
+.img-upload { border:1px dashed var(--border2); border-radius:10px; padding:14px; text-align:center; cursor:pointer; transition:all .2s; margin-top:10px; display:flex; align-items:center; gap:12px; }
+.img-upload:hover { border-color:var(--border3); background:rgba(212,175,55,.03); }
+.img-preview { width:52px; height:52px; border-radius:8px; object-fit:cover; border:1px solid var(--border2); display:none; }
+.img-placeholder { width:52px; height:52px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.img-info { text-align:right; flex:1; }
+.img-title { font-size:13px; font-weight:600; color:var(--white2); }
+.img-sub { font-size:11px; color:var(--white3); margin-top:2px; }
+
+.message-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--rsm); padding:12px; font-size:13px; color:var(--white2); width:100%; resize:vertical; min-height:90px; font-family:'Heebo',sans-serif; line-height:1.7; outline:none; transition:border-color .15s; }
+.message-box:focus { border-color:var(--gold3); }
+.channel-row { display:flex; gap:8px; margin:10px 0; }
+.channel-btn { flex:1; padding:9px; border-radius:var(--rsm); border:1px solid var(--border); background:var(--surface2); color:var(--white3); font-size:12px; font-weight:600; cursor:pointer; text-align:center; transition:all .15s; font-family:'Heebo',sans-serif; letter-spacing:.03em; }
+.channel-btn.aw { background:rgba(37,211,102,.08); border-color:rgba(37,211,102,.3); color:#4CAF80; }
+.reminder-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border-radius:var(--rsm); padding:11px 14px; margin-top:10px; border:1px solid var(--border); }
+.reminder-text { font-size:12px; color:var(--white3); }
+.reminder-count { font-size:13px; font-weight:700; color:var(--gold); }
+
+/* ===== RSVP MODAL ===== */
+@keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(26px)} to{opacity:1;transform:translateY(0)} }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; z-index:999; backdrop-filter:blur(10px); padding:16px; overflow-y:auto; }
+.modal-overlay.hidden { display:none; }
+
+.rsvp-modal { background:var(--surface); border:1px solid var(--border2); border-radius:22px; width:420px; max-width:100%; animation:slideUp .32s ease; box-shadow:0 0 60px rgba(212,175,55,.1); margin:auto; }
+.rsvp-modal::before { content:''; display:block; height:2px; background:linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold2),var(--gold),var(--gold3),transparent); border-radius:22px 22px 0 0; }
+
+/* Invitation image */
+.invite-img-wrap { position:relative; overflow:hidden; max-height:180px; }
+.invite-img-wrap img { width:100%; height:180px; object-fit:cover; display:block; }
+.invite-img-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, transparent 40%, rgba(30,30,33,.95)); }
+
+.rsvp-header { padding:26px 26px 20px; text-align:center; border-bottom:1px solid var(--border); background:radial-gradient(ellipse at top, rgba(212,175,55,.07) 0%, transparent 65%); }
+.rsvp-eyebrow { font-size:10px; letter-spacing:.3em; color:var(--gold3); text-transform:uppercase; margin-bottom:12px; }
+.rsvp-event-name { font-family:'Playfair Display',serif; font-size:21px; font-weight:700; color:var(--white); margin-bottom:6px; }
+.rsvp-divider { width:36px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:12px auto; }
+.rsvp-meta { font-size:13px; color:var(--white3); line-height:1.8; }
+.rsvp-guest-tag { font-size:13px; color:var(--gold); font-weight:600; margin-top:12px; background:rgba(212,175,55,.09); display:inline-block; padding:5px 16px; border-radius:20px; border:1px solid var(--border2); letter-spacing:.03em; }
+
+.rsvp-body { padding:24px 26px; }
+.step { display:none; }
+.step.visible { display:block; animation:fadeIn .25s ease; }
+
+/* Step 1 */
+.rsvp-q { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; text-align:center; color:var(--white); margin-bottom:20px; line-height:1.4; }
+.rsvp-opts { display:flex; flex-direction:column; gap:9px; }
+.rsvp-opt { width:100%; padding:15px 18px; border-radius:12px; border:1px solid var(--border); background:var(--surface2); color:var(--white); font-size:14px; font-weight:600; cursor:pointer; font-family:'Heebo',sans-serif; transition:all .18s; display:flex; align-items:center; gap:13px; text-align:right; }
+.rsvp-opt .oi { font-size:22px; flex-shrink:0; }
+.rsvp-opt .ol { flex:1; }
+.rsvp-opt .os { font-size:11px; font-weight:400; color:var(--white3); margin-top:2px; }
+.rsvp-opt.coming { border-color:rgba(76,175,128,.25); }
+.rsvp-opt.coming:hover { background:rgba(76,175,128,.09); border-color:rgba(76,175,128,.5); transform:translateX(-3px); }
+.rsvp-opt.nope { border-color:rgba(192,80,74,.2); }
+.rsvp-opt.nope:hover { background:rgba(192,80,74,.07); border-color:rgba(192,80,74,.4); transform:translateX(-3px); }
+.rsvp-opt.maybe { border-color:rgba(212,175,55,.2); }
+.rsvp-opt.maybe:hover { background:rgba(212,175,55,.07); border-color:var(--border2); transform:translateX(-3px); }
+
+/* Step 2 — count */
+.back-btn { background:none; border:none; color:var(--white3); font-size:12px; cursor:pointer; font-family:'Heebo',sans-serif; display:flex; align-items:center; gap:5px; margin-bottom:18px; transition:color .15s; letter-spacing:.03em; }
+.back-btn:hover { color:var(--white2); }
+.step-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; text-align:center; margin-bottom:4px; color:var(--white); }
+.step-sub { font-size:12px; color:var(--white3); text-align:center; margin-bottom:20px; letter-spacing:.03em; }
+.count-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
+.count-btn { aspect-ratio:1; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--white2); font-size:17px; font-weight:700; cursor:pointer; font-family:'Playfair Display',serif; transition:all .15s; display:flex; align-items:center; justify-content:center; }
+.count-btn:hover { border-color:var(--border3); background:rgba(212,175,55,.08); color:var(--gold); transform:scale(1.06); }
+.count-btn.sel { border-color:var(--gold); background:rgba(212,175,55,.14); color:var(--gold); }
+.more-row { display:flex; align-items:center; gap:10px; background:var(--surface2); border-radius:9px; padding:11px 14px; border:1px solid var(--border); margin-bottom:18px; }
+.more-label { font-size:12px; color:var(--white3); flex:1; }
+.count-input { background:var(--surface3); border:1px solid var(--border2); border-radius:7px; padding:7px 10px; color:var(--gold); font-size:15px; font-weight:700; font-family:'Playfair Display',serif; outline:none; text-align:center; width:66px; }
+.count-input:focus { border-color:var(--gold3); }
+
+/* Step 3 — meal preferences */
+.meal-section { margin-bottom:18px; }
+.meal-title-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.meal-icon { font-size:18px; }
+.meal-label { font-size:14px; font-weight:700; color:var(--white); }
+.meal-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border-radius:10px; padding:12px 15px; border:1px solid var(--border); margin-bottom:8px; }
+.meal-name { font-size:13px; color:var(--white2); font-weight:500; }
+.meal-name span { font-size:11px; color:var(--white3); display:block; margin-top:2px; }
+.qty-ctrl { display:flex; align-items:center; gap:10px; }
+.qty-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--border2); background:var(--surface3); color:var(--gold); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; font-family:'Heebo',sans-serif; }
+.qty-btn:hover { border-color:var(--border3); background:rgba(212,175,55,.1); }
+.qty-num { font-size:16px; font-weight:700; color:var(--white); min-width:20px; text-align:center; font-family:'Playfair Display',serif; }
+
+.section-divider { border:none; border-top:1px solid var(--border); margin:18px 0; }
+
+/* Step 4 — success */
+.success-wrap { text-align:center; padding:10px 0; }
+.success-icon { font-size:50px; margin-bottom:14px; }
+.success-title { font-family:'Playfair Display',serif; font-size:23px; font-weight:700; color:var(--white); margin-bottom:8px; }
+.success-sub { font-size:13px; color:var(--white3); line-height:1.8; }
+.success-badge { display:inline-block; background:rgba(212,175,55,.1); border:1px solid var(--border2); color:var(--gold); padding:7px 20px; border-radius:20px; font-size:13px; font-weight:600; margin-top:14px; letter-spacing:.04em; }
+
+/* Calendar + Nav gadgets */
+.gadgets-row { display:flex; gap:8px; margin-top:16px; }
+.gadget-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 10px; border-radius:10px; border:1px solid var(--border2); background:var(--surface2); color:var(--white2); font-size:12px; font-weight:600; cursor:pointer; font-family:'Heebo',sans-serif; transition:all .18s; text-decoration:none; letter-spacing:.03em; }
+.gadget-btn:hover { border-color:var(--border3); background:rgba(212,175,55,.07); color:var(--gold); }
+.gadget-icon { font-size:16px; }
+
+/* Info section */
+.info-section { border-top:1px solid var(--border); padding:18px 26px 22px; }
+.info-title { font-size:10px; letter-spacing:.2em; color:var(--gold3); text-transform:uppercase; margin-bottom:12px; }
+.info-row { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.info-row:last-child { border-bottom:none; }
+.info-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.info-label { font-size:12px; color:var(--white3); margin-bottom:2px; letter-spacing:.03em; }
+.info-val { font-size:13px; color:var(--white2); font-weight:600; }
+.info-link { font-size:12px; color:var(--gold); text-decoration:none; display:inline-flex; align-items:center; gap:4px; margin-top:3px; border:1px solid var(--border2); padding:4px 10px; border-radius:20px; transition:all .15s; font-weight:600; }
+.info-link:hover { background:rgba(212,175,55,.08); border-color:var(--border3); }
+
+/* Confirm btn */
+.confirm-btn { width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2)); color:#0a0a0a; font-size:15px; font-weight:700; cursor:pointer; font-family:'Heebo',sans-serif; transition:all .18s; letter-spacing:.04em; }
+.confirm-btn:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(212,175,55,.25); }
+.confirm-btn:disabled { background:var(--surface3); color:var(--white3); cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* Anim */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.stat-card{animation:fadeUp .4s ease both;}
+.stat-card:nth-child(1){animation-delay:.05s} .stat-card:nth-child(2){animation-delay:.1s} .stat-card:nth-child(3){animation-delay:.15s} .stat-card:nth-child(4){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<div class="gold-line"></div>
+
+<!-- ===== RSVP MODAL ===== -->
+<div class="modal-overlay hidden" id="rsvpModal">
+  <div class="rsvp-modal">
+
+    <!-- תמונת הזמנה -->
+    <div class="invite-img-wrap" id="inviteImgWrap" style="display:none;">
+      <img id="inviteImgModal" src="" alt="הזמנה">
+      <div class="invite-img-overlay"></div>
+    </div>
+
+    <div class="rsvp-header">
+      <div class="rsvp-eyebrow">✦ הושבה כיד המלך ✦</div>
+      <div class="rsvp-event-name">חתונת לירון ואיתי כהן</div>
+      <div class="rsvp-divider"></div>
+      <div class="rsvp-meta">
+        יום שני, ט"ו בסיוון תשפ"ו<br>
+        15 ביוני 2026 &nbsp;|&nbsp; 19:00<br>
+        אולם הדקל, ראשון לציון
+      </div>
+      <div class="rsvp-guest-tag">👋 שלום ישראל כהן</div>
+    </div>
+
+    <div class="rsvp-body" id="rsvpBody">
+
+      <!-- שלב 1: תשובה -->
+      <div class="step visible" id="step1">
+        <div class="rsvp-q">האם תגיע/י לאירוע שמחתנו?</div>
+        <div class="rsvp-opts">
+          <button class="rsvp-opt coming" onclick="showStep2()">
+            <span class="oi">✅</span>
+            <div class="ol"><div>כן, מגיע/ה!</div><div class="os">אשמח להגיע ולחגוג יחד</div></div>
+          </button>
+          <button class="rsvp-opt nope" onclick="showNotComing()">
+            <span class="oi">❌</span>
+            <div class="ol"><div>לא אוכל להגיע</div><div class="os">מצטער/ת, לא אגיע הפעם</div></div>
+          </button>
+          <button class="rsvp-opt maybe" onclick="showMaybe()">
+            <span class="oi">❓</span>
+            <div class="ol"><div>עדיין לא יודע/ת</div><div class="os">אעדכן בהמשך</div></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- שלב 2: כמה אנשים -->
+      <div class="step" id="step2">
+        <button class="back-btn" onclick="goToStep(1,2)">← חזרה</button>
+        <div class="step-title">כמה אנשים מגיעים?</div>
+        <div class="step-sub">כולל עצמך — בחר/י מספר</div>
+        <div class="count-grid">
+          <button class="count-btn" onclick="pickN(this,1)">1</button>
+          <button class="count-btn" onclick="pickN(this,2)">2</button>
+          <button class="count-btn" onclick="pickN(this,3)">3</button>
+          <button class="count-btn" onclick="pickN(this,4)">4</button>
+          <button class="count-btn" onclick="pickN(this,5)">5</button>
+          <button class="count-btn" onclick="pickN(this,6)">6</button>
+          <button class="count-btn" onclick="pickN(this,7)">7</button>
+          <button class="count-btn" onclick="pickN(this,8)">8</button>
+          <button class="count-btn" onclick="pickN(this,9)">9</button>
+          <button class="count-btn" onclick="pickN(this,10)">10</button>
+        </div>
+        <div class="more-row">
+          <span class="more-label">מגיעים יותר מ-10?</span>
+          <input class="count-input" type="number" min="11" max="99" placeholder="11+" id="customCount" oninput="pickCustom(this)">
+        </div>
+        <button class="confirm-btn" id="toMealBtn" onclick="goToStep(3,2)" disabled>המשך לבחירת מנות ←</button>
+      </div>
+
+      <!-- שלב 3: מנות -->
+      <div class="step" id="step3">
+        <button class="back-btn" onclick="goToStep(2,3)">← חזרה</button>
+        <div class="step-title">בחירת מנות מיוחדות</div>
+        <div class="step-sub">אופציונלי — רק אם צריך</div>
+
+        <div class="meal-section">
+          <div class="meal-title-row"><span class="meal-icon">🌿</span><span class="meal-label">מנות צמחוניות</span></div>
+          <div class="meal-row">
+            <div class="meal-name">מנה צמחונית<span>ראשון + עיקרית + קינוח</span></div>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('veg',-1)">−</button>
+              <span class="qty-num" id="vegCount">0</span>
+              <button class="qty-btn" onclick="changeQty('veg',1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-section">
+          <div class="meal-title-row"><span class="meal-icon">🧒</span><span class="meal-label">מנות ילדים</span></div>
+          <div class="meal-row">
+            <div class="meal-name">מנת ילדים<span>שניצל / פיצה / פסטה</span></div>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('kid',-1)">−</button>
+              <span class="qty-num" id="kidCount">0</span>
+              <button class="qty-btn" onclick="changeQty('kid',1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="confirm-btn" onclick="showSuccess()">✦ אישור הגעה סופי</button>
+      </div>
+
+      <!-- שלב 4: הצלחה -->
+      <div class="step" id="step4">
+        <div class="success-wrap">
+          <div class="success-icon">🥂</div>
+          <div class="success-title">תודה, אישרת הגעה!</div>
+          <div style="width:36px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto;"></div>
+          <div class="success-sub">שמחים שתגיע/י!<br>נתראה בחתונה של לירון ואיתי.</div>
+          <div class="success-badge" id="successBadge">מגיעים: 2 אנשים</div>
+          <div id="mealSummary" style="margin-top:8px;font-size:12px;color:var(--white3);"></div>
+
+          <!-- גאדג'טים: הוסף ליומן + נווט -->
+          <div class="gadgets-row">
+            <a class="gadget-btn" href="data:text/calendar;charset=utf8,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ASUMMARY:חתונת לירון ואיתי כהן%0ADTSTART:20260615T190000%0ADTEND:20260615T230000%0ALOCATION:אולם הדקל ראשון לציון%0AEND:VEVENT%0AEND:VCALENDAR" download="event.ics" onclick="void(0)">
+              <span class="gadget-icon">📅</span> הוסף ליומן
+            </a>
+            <a class="gadget-btn" href="https://waze.com/ul?q=אולם+הדקל+ראשון+לציון" target="_blank">
+              <span class="gadget-icon">🗺️</span> נווט לאירוע
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /rsvp-body -->
+
+    <!-- מידע נוסף -->
+    <div class="info-section">
+      <div class="info-title">מידע נוסף לאירוע</div>
+
+      <div class="info-row">
+        <span class="info-icon">📍</span>
+        <div>
+          <div class="info-label">מפת הגעה</div>
+          <div class="info-val">אולם הדקל, רחוב הורד 12, ראשון לציון</div>
+          <a class="info-link" href="https://maps.google.com/?q=אולם+הדקל+ראשון+לציון" target="_blank">🗺️ פתח במפה</a>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <span class="info-icon">🚗</span>
+        <div>
+          <div class="info-label">חניה</div>
+          <div class="info-val">חניון חינמי צמוד לאולם — 300 מקומות</div>
+          <div class="info-val" style="font-size:12px;color:var(--white3);margin-top:3px;">כניסה מרחוב הורד · פתוח מ-17:00</div>
+          <a class="info-link" href="https://waze.com/ul?q=אולם+הדקל+ראשון+לציון" target="_blank">🔵 נווט לחניון</a>
+        </div>
+      </div>
+
+      <div class="info-row" style="border-bottom:none;">
+        <span class="info-icon">📞</span>
+        <div>
+          <div class="info-label">יצירת קשר</div>
+          <div class="info-val">לשאלות: 050-0000000</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-eyebrow">✦ פלטפורמה יוקרתית</div>
+    <div class="logo-text">הושבה <span>כיד המלך</span></div>
+    <div class="logo-sub">מערכת אישורי הגעה</div>
+  </div>
+  <div class="nav-section">ניהול</div>
+  <div class="nav-item active"><span class="nav-icon">◈</span> דשבורד</div>
+  <div class="nav-item"><span class="nav-icon">◇</span> אירועים</div>
+  <div class="nav-item"><span class="nav-icon">◈</span> אורחים</div>
+  <div class="nav-item"><span class="nav-icon">◇</span> שליחת הודעות</div>
+  <div class="nav-section">דוחות</div>
+  <div class="nav-item"><span class="nav-icon">◈</span> סטטיסטיקות</div>
+  <div class="nav-item"><span class="nav-icon">◇</span> ייצוא נתונים</div>
+  <div class="nav-section">הגדרות</div>
+  <div class="nav-item"><span class="nav-icon">◇</span> הגדרות</div>
+  <div class="sidebar-footer">
+    <div class="user-badge">
+      <div class="avatar">ע</div>
+      <div><div class="user-name">עדי</div><div class="user-plan">✦ Pro</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">דשבורד ראשי</div>
+      <div class="page-sub">חתונת כהן &nbsp;·&nbsp; 15 ביוני 2026</div>
+    </div>
+    <div style="display:flex;gap:9px;">
+      <button class="preview-btn" onclick="openModal()">✦ תצוגת אורח</button>
+      <button class="btn btn-ghost">ייצא Excel</button>
+      <button class="btn btn-gold">+ אירוע חדש</button>
+    </div>
+  </div>
+
+  <div class="event-info">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="event-name">✦ חתונת כהן — לירון ואיתי</div>
+        <div class="event-meta" style="margin-top:4px;">📅 15 ביוני 2026 &nbsp;·&nbsp; 📍 אולם הדקל, ראשון לציון &nbsp;·&nbsp; <span style="color:var(--green);">● הודעות נשלחו</span></div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:12px;">החלף אירוע ▾</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>אחוז מענה</span><span style="color:var(--gold);font-weight:700;">74% &nbsp;(222 / 300)</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:74%;"></div></div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card gold"><div class="stat-divider"></div><div class="stat-label">סה"כ אורחים</div><div class="stat-value sv-gold">300</div><div class="stat-change">הועלו מ-CSV</div></div>
+    <div class="stat-card g"><div class="stat-divider" style="background:linear-gradient(90deg,var(--green),transparent);"></div><div class="stat-label">מגיעים</div><div class="stat-value sv-g">178</div><div class="stat-change">סה"כ 243 איש כולל +1</div></div>
+    <div class="stat-card r"><div class="stat-divider" style="background:linear-gradient(90deg,var(--red),transparent);"></div><div class="stat-label">לא מגיעים</div><div class="stat-value sv-r">31</div><div class="stat-change">10.3% מהרשימה</div></div>
+    <div class="stat-card a"><div class="stat-divider" style="background:linear-gradient(90deg,var(--amber),transparent);"></div><div class="stat-label">לא ענו</div><div class="stat-value sv-a">78</div><div class="stat-change">ממתינים לתזכורת</div></div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">רשימת אורחים</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input placeholder="חיפוש..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--white2);font-size:12px;outline:none;font-family:'Heebo',sans-serif;width:140px;">
+          <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;">סנן ▾</button>
+        </div>
+      </div>
+      <div style="padding:12px 16px 0;">
+        <div class="tabs">
+          <div class="tab active">הכל (300)</div>
+          <div class="tab">מגיעים (178)</div>
+          <div class="tab">לא ענו (78)</div>
+        </div>
+      </div>
+      <table class="guests-table">
+        <thead><tr><th>אורח</th><th>סטטוס</th><th>כמה מגיעים</th><th>מנות</th><th>נענה</th></tr></thead>
+        <tbody>
+          <tr><td><div class="g-name">ישראל כהן</div><div class="g-phone">050-1234567</div></td><td><span class="status-badge b-come">✓ מגיע</span></td><td style="font-weight:700;color:var(--green);">3 איש</td><td style="font-size:11px;color:var(--white3);">🌿×1</td><td style="color:var(--white3);font-size:11px;">לפני 2 ש'</td></tr>
+          <tr><td><div class="g-name">שרה לוי</div><div class="g-phone">052-9876543</div></td><td><span class="status-badge b-come">✓ מגיעה</span></td><td style="font-weight:700;color:var(--green);">2 איש</td><td style="font-size:11px;color:var(--white3);">🧒×2</td><td style="color:var(--white3);font-size:11px;">לפני 5 ש'</td></tr>
+          <tr><td><div class="g-name">דוד מזרחי</div><div class="g-phone">054-5556666</div></td><td><span class="status-badge b-no">✗ לא מגיע</span></td><td style="color:var(--white3);">—</td><td style="color:var(--white3);">—</td><td style="color:var(--white3);font-size:11px;">אתמול</td></tr>
+          <tr><td><div class="g-name">רחל אברהם</div><div class="g-phone">053-1112222</div></td><td><span class="status-badge b-may">? לא יודעת</span></td><td style="color:var(--white3);">—</td><td style="color:var(--white3);">—</td><td style="color:var(--white3);font-size:11px;">לפני יומיים</td></tr>
+          <tr><td><div class="g-name">משה פרידמן</div><div class="g-phone">058-7778888</div></td><td><span class="status-badge b-pend">· לא ענה</span></td><td style="color:var(--white3);">—</td><td style="color:var(--white3);">—</td><td style="color:var(--white3);">—</td></tr>
+          <tr><td><div class="g-name">נועה שמעון</div><div class="g-phone">050-3334444</div></td><td><span class="status-badge b-come">✓ מגיעה</span></td><td style="font-weight:700;color:var(--green);">4 איש</td><td style="font-size:11px;color:var(--white3);">🌿×2 🧒×1</td><td style="color:var(--white3);font-size:11px;">לפני 1 ש'</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div style="display:flex;flex-direction:column;gap:15px;">
+
+      <!-- Upload guests -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">העלאת אורחים</div></div>
+        <div class="card-body">
+          <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
+            <div class="upload-icon">📂</div>
+            <div class="upload-title">גרור קובץ CSV לכאן</div>
+            <div class="upload-sub">עמודות: שם, טלפון</div>
+            <input type="file" id="csvFile" accept=".csv" style="display:none;">
+          </div>
+          <button class="btn btn-gold" style="width:100%;margin-top:12px;justify-content:center;">העלה ושלח הודעות</button>
+        </div>
+      </div>
+
+      <!-- Send message -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">שליחת הודעה</div></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--white3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.12em;">ערוץ שליחה</div>
+          <div class="channel-row">
+            <div class="channel-btn aw">💬 WhatsApp</div>
+            <div class="channel-btn">📱 SMS</div>
+          </div>
+
+          <div style="font-size:10px;color:var(--white3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.12em;">תמונת הזמנה (אופציונלי)</div>
+          <div class="img-upload" onclick="document.getElementById('inviteImg').click()">
+            <div class="img-placeholder" id="imgPlaceholder">🖼️</div>
+            <img class="img-preview" id="imgPreviewThumb" src="" alt="">
+            <div class="img-info">
+              <div class="img-title">הוסף תמונת הזמנה</div>
+              <div class="img-sub" id="imgSubText">תישלח יחד עם ההודעה<br>JPG / PNG עד 5MB</div>
+            </div>
+            <input type="file" id="inviteImg" accept="image/*" style="display:none;" onchange="previewImg(this)">
+          </div>
+
+          <div style="font-size:10px;color:var(--white3);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.12em;">תוכן ההודעה</div>
+          <textarea class="message-box">שלום {שם} 👋
+הוזמנת לחתונה של לירון ואיתי ב-15.6.26.
+
+האם תגיע/י? לחץ/י כאן:
+{קישור}</textarea>
+          <div style="font-size:11px;color:var(--white3);margin-top:5px;">✦ {שם} ו-{קישור} יוחלפו אוטומטית</div>
+
+          <div class="reminder-row">
+            <div class="reminder-text">שלח תזכורת למי שלא ענה</div>
+            <div class="reminder-count">78 ✦</div>
+          </div>
+          <button class="btn btn-gold" style="width:100%;margin-top:12px;justify-content:center;">✦ שלח לכולם</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  let chosen = 0, veg = 0, kid = 0;
+
+  function openModal() {
+    chosen = 0; veg = 0; kid = 0;
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('visible'));
+    document.getElementById('step1').classList.add('visible');
+    document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('sel'));
+    document.getElementById('customCount').value = '';
+    document.getElementById('toMealBtn').disabled = true;
+    document.getElementById('vegCount').textContent = '0';
+    document.getElementById('kidCount').textContent = '0';
+    document.getElementById('rsvpModal').classList.remove('hidden');
+  }
+
+  function goToStep(to, from) {
+    document.getElementById('step'+from).classList.remove('visible');
+    document.getElementById('step'+to).classList.add('visible');
+  }
+
+  function showStep2() { goToStep(2,1); }
+
+  function pickN(btn, n) {
+    document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    document.getElementById('customCount').value = '';
+    chosen = n;
+    document.getElementById('toMealBtn').disabled = false;
+  }
+
+  function pickCustom(inp) {
+    document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('sel'));
+    const v = parseInt(inp.value);
+    if (v > 0) { chosen = v; document.getElementById('toMealBtn').disabled = false; }
+    else { chosen = 0; document.getElementById('toMealBtn').disabled = true; }
+  }
+
+  function changeQty(type, delta) {
+    if (type === 'veg') {
+      veg = Math.max(0, veg + delta);
+      document.getElementById('vegCount').textContent = veg;
+    } else {
+      kid = Math.max(0, kid + delta);
+      document.getElementById('kidCount').textContent = kid;
+    }
+  }
+
+  function showSuccess() {
+    goToStep(4, 3);
+    const badge = document.getElementById('successBadge');
+    badge.textContent = '✦ מגיעים: ' + chosen + (chosen === 1 ? ' איש' : ' אנשים');
+    const summary = document.getElementById('mealSummary');
+    let parts = [];
+    if (veg > 0) parts.push('🌿 צמחוני ×' + veg);
+    if (kid > 0) parts.push('🧒 ילדים ×' + kid);
+    summary.textContent = parts.length ? parts.join('  ·  ') : '';
+  }
+
+  function showNotComing() {
+    document.getElementById('step1').classList.remove('visible');
+    document.getElementById('rsvpBody').innerHTML = `
+      <div style="text-align:center;padding:16px 0;">
+        <div style="font-size:50px;margin-bottom:14px;">🕊️</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--white);margin-bottom:8px;">אוקיי, מצטערים!</div>
+        <div style="width:36px;height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent);margin:12px auto;"></div>
+        <div style="font-size:13px;color:var(--white3);line-height:1.8;">נשמח לראות אותך בפעם אחרת.<br>תודה שהגבת!</div>
+      </div>`;
+  }
+
+  function showMaybe() {
+    document.getElementById('step1').classList.remove('visible');
+    document.getElementById('rsvpBody').innerHTML = `
+      <div style="text-align:center;padding:16px 0;">
+        <div style="font-size:50px;margin-bottom:14px;">⏳</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--white);margin-bottom:8px;">תודה, נחכה לעדכון!</div>
+        <div style="width:36px;height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent);margin:12px auto;"></div>
+        <div style="font-size:13px;color:var(--white3);line-height:1.8;">נשלח לך תזכורת קרוב לתאריך.<br>תוכל/י לעדכן בכל עת.</div>
+      </div>`;
+  }
+
+  // Image preview for invite photo
+  function previewImg(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const url = URL.createObjectURL(file);
+    // Thumb in admin panel
+    const thumb = document.getElementById('imgPreviewThumb');
+    const placeholder = document.getElementById('imgPlaceholder');
+    thumb.src = url; thumb.style.display = 'block';
+    placeholder.style.display = 'none';
+    document.getElementById('imgSubText').textContent = file.name;
+    // Show in modal
+    const wrap = document.getElementById('inviteImgWrap');
+    const modalImg = document.getElementById('inviteImgModal');
+    modalImg.src = url;
+    wrap.style.display = 'block';
+  }
+
+  // Close modal on overlay click
+  document.getElementById('rsvpModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('hidden');
+  });
+</script>
+</body>
+</html>
