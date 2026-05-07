@@ -4,7 +4,7 @@ import SendMessage from "../components/SendMessage.jsx";
 import { apiFetch } from "../lib/api.js";
 import Papa from "papaparse";
 import { useToast } from "../components/ToastProvider.jsx";
-import { guestsToCsvFile, pickGuestsFromContacts } from "../utils/contactsImport.js";
+import { guestsToCsvFile, parseVcfToGuests, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 export default function UploadGuests() {
   const { eventId } = useParams();
@@ -232,6 +232,29 @@ export default function UploadGuests() {
     }
   };
 
+  const importFromVcf = async (file) => {
+    try {
+      clearList();
+      if (!file) return;
+      const text = await file.text();
+      const { guests, dupInPick } = parseVcfToGuests(text);
+      if (!guests.length) {
+        setResultText("לא נמצאו אנשי קשר בקובץ.");
+        return;
+      }
+      const csv = guestsToCsvFile(guests, "contacts.vcf.csv");
+      setCsvFile(csv);
+      setDupInFile(dupInPick);
+      setPreviewGuests(guests.slice(0, 500));
+      setResultText(`נטענו ${guests.length} אנשי קשר מתוך קובץ VCF לתצוגה לפני אישור.`);
+      setNeedsChoice(true);
+      setImportMode(null);
+    } catch (e) {
+      toast.push({ tone: "warning", title: "ייבוא VCF נכשל", message: e.message });
+      setResultText(e.message);
+    }
+  };
+
   const importGuests = async () => {
     try {
       setLoading(true);
@@ -347,6 +370,19 @@ export default function UploadGuests() {
           <button type="button" className="btn btn-accent" onClick={importFromContacts} disabled={loading}>
             ייבוא מאנשי קשר (Android/Chrome)
           </button>
+          <label className="btn btn-accent" style={{ cursor: "pointer" }}>
+            ייבוא מאנשי קשר (iPhone/VCF)
+            <input
+              type="file"
+              accept=".vcf,text/vcard,text/x-vcard"
+              style={{ display: "none" }}
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                await importFromVcf(f);
+              }}
+            />
+          </label>
         </div>
 
         <div

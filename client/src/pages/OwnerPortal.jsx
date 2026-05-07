@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import { apiFetch } from "../lib/api.js";
 import { useToast } from "../components/ToastProvider.jsx";
 import BrandHeader from "../components/BrandHeader.jsx";
-import { guestsToCsvFile, pickGuestsFromContacts } from "../utils/contactsImport.js";
+import { guestsToCsvFile, parseVcfToGuests, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 const wizardSteps = ["פרטי אירוע", "מוזמנים", "הודעה ותמונה", "שליחה"];
 
@@ -224,6 +224,28 @@ export default function OwnerPortal() {
     }
   };
 
+  const importFromVcf = async (file) => {
+    try {
+      setPreviewGuests([]);
+      setImportResult("");
+      setCsvFile(null);
+      if (!file) return;
+      const text = await file.text();
+      const { guests, dupInPick } = parseVcfToGuests(text);
+      if (!guests.length) {
+        setImportResult("לא נמצאו אנשי קשר בקובץ.");
+        return;
+      }
+      setDupInFile(dupInPick);
+      setPreviewGuests(guests.slice(0, 500));
+      const csv = guestsToCsvFile(guests, "contacts.vcf.csv");
+      setCsvFile(csv);
+      toast.push({ tone: "success", title: "נטען", message: `נטענו ${guests.length} אנשי קשר מקובץ VCF לתצוגה.` });
+    } catch (e) {
+      toast.push({ tone: "warning", title: "ייבוא VCF נכשל", message: e.message });
+      setImportResult(e.message);
+    }
+  };
   const importGuests = async () => {
     try {
       if (!csvFile) return;
@@ -562,6 +584,19 @@ export default function OwnerPortal() {
               <button className="btn btn-accent" type="button" onClick={importFromContacts} disabled={importing}>
                 ייבוא מאנשי קשר (Android/Chrome)
               </button>
+              <label className="btn btn-accent" style={{ cursor: "pointer" }}>
+                ייבוא מאנשי קשר (iPhone/VCF)
+                <input
+                  type="file"
+                  accept=".vcf,text/vcard,text/x-vcard"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    await importFromVcf(f);
+                  }}
+                />
+              </label>
             </div>
 
             {previewGuests.length > 0 && (
