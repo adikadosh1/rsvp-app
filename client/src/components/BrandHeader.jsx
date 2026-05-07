@@ -16,7 +16,7 @@ function CrownMark() {
 export default function BrandHeader({ rightSlot = null }) {
   return (
     <header className="brand-mini" role="banner">
-      <Link className="brand-mini-left" to="/start" aria-label="מעבר למסך התחלה">
+      <Link className="brand-mini-left" to="/" aria-label="מעבר לדף הבית">
         <CrownMark />
         <div className="brand-mini-text">
           <div className="brand-mini-eyebrow">RSVP PREMIUM</div>

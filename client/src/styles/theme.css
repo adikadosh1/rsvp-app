@@ -1607,6 +1607,33 @@ select:focus {
   border-radius: 12px;
 }
 
+.back-fab {
+  position: fixed;
+  inset-inline-start: 14px;
+  inset-block-start: 14px;
+  z-index: 1200;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 11, 14, 0.58);
+  color: rgba(247, 247, 251, 0.92);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+
+.back-fab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 211, 138, 0.22);
+}
+
+.back-fab:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-soft), var(--ring);
+}
+
 .hero-media::after {
   content: "";
   position: absolute;

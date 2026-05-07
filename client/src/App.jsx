@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import AdminShell from "./components/AdminShell.jsx";
+import BackButton from "./components/BackButton.jsx";
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.jsx"));
@@ -12,6 +13,10 @@ const StartOwner = lazy(() => import("./pages/StartOwner.jsx"));
 const OwnerPortal = lazy(() => import("./pages/OwnerPortal.jsx"));
 const Terms = lazy(() => import("./pages/Terms.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy.jsx"));
+const About = lazy(() => import("./pages/About.jsx"));
+const Services = lazy(() => import("./pages/Services.jsx"));
+const Pricing = lazy(() => import("./pages/Pricing.jsx"));
+const Contact = lazy(() => import("./pages/Contact.jsx"));
 
 function CrownMark() {
   return (
@@ -50,6 +55,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <BackButton />
       <Suspense
         fallback={
           <div className="container">
@@ -62,6 +68,10 @@ export default function App() {
       >
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<AdminLogin />} />
           <Route path="/start" element={<StartOwner />} />
           <Route path="/owner/:ownerToken" element={<OwnerPortal />} />

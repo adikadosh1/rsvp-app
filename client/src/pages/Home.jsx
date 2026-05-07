@@ -30,15 +30,11 @@ function MobileMenuIcon() {
 
 function TopNav() {
   const items = [
-    { href: "#home", label: "דף הבית" },
-    { href: "#about", label: "אודות" },
-    { href: "#services", label: "השירותים שלנו" },
-    { href: "#process", label: "איך זה עובד" },
-    { href: "#pricing", label: "מחירון" },
-    { href: "#trust", label: "למה אנחנו" },
-    { href: "#faq", label: "שאלות" },
-    { href: "#story", label: "קצת עלינו" },
-    { href: "#contact", label: "צור קשר" }
+    { href: "/", label: "דף הבית" },
+    { href: "/about", label: "אודות" },
+    { href: "/services", label: "השירותים שלנו" },
+    { href: "/pricing", label: "מחירון" },
+    { href: "/contact", label: "צור קשר" }
   ];
 
   const [open, setOpen] = useState(false);
@@ -59,14 +55,14 @@ function TopNav() {
   const links = useMemo(
     () =>
       items.map((it) => (
-        <a
+        <Link
           key={it.href}
           className="home-nav-link"
-          href={it.href}
           onClick={() => setOpen(false)}
+          to={it.href}
         >
           {it.label}
-        </a>
+        </Link>
       )),
     []
   );
@@ -155,7 +151,7 @@ export default function Home() {
       <TopNav />
       <BrandHeader />
 
-      <section id="home" className="card hero">
+      <section id="home" className="card hero" aria-label="פתיח">
         <div className="hero-inner">
           <div className="hero-kicker">PREMIUM EVENT OPS</div>
           <h1 className="hero-title">
@@ -346,11 +342,11 @@ export default function Home() {
         <form className="home-contact" onSubmit={(e) => e.preventDefault()}>
           <label className="field">
             <span>שם מלא</span>
-            <input placeholder="איך נקרא לכם?" />
+            <input placeholder="איך נקרא לכם?" autoComplete="name" />
           </label>
           <label className="field">
             <span>טלפון</span>
-            <input placeholder="050-0000000" inputMode="tel" />
+            <input placeholder="050-0000000" inputMode="tel" autoComplete="tel" />
           </label>
           <label className="field">
             <span>מה תרצו לשמוע?</span>

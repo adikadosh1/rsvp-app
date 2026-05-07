@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rsvp-app-iota.vercel.app/sitemap.xml
+
