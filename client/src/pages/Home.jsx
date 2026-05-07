@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import BrandHeader from "../components/BrandHeader.jsx";
 
 function Section({ id, title, subtitle, children }) {
   return (
@@ -25,6 +24,23 @@ function MobileMenuIcon() {
       <span />
       <span />
     </span>
+  );
+}
+
+function CrownMark() {
+  return (
+    <svg className="home-nav-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path
+        d="M10 46h44v6H10v-6Zm4-24 10 12 8-14 8 14 10-12 6 18H8l6-18Z"
+        fill="currentColor"
+        opacity="0.95"
+      />
+      <path
+        d="M16 16a4 4 0 1 0 0.001 0ZM32 10a4 4 0 1 0 0.001 0ZM48 16a4 4 0 1 0 0.001 0Z"
+        fill="currentColor"
+        opacity="0.55"
+      />
+    </svg>
   );
 }
 
@@ -71,7 +87,10 @@ function TopNav() {
     <nav className="home-nav" aria-label="תפריט ראשי">
       <div className="home-nav-inner">
         <a className="home-nav-brand" href="#home" aria-label="חזרה לדף הבית">
-          הושבה <span>כיד המלך</span>
+          <CrownMark />
+          <span className="home-nav-brand-text">
+            הושבה <span>כיד המלך</span>
+          </span>
         </a>
         <div className="home-nav-links">{links}</div>
 
@@ -149,7 +168,6 @@ export default function Home() {
   return (
     <div className="container home-page">
       <TopNav />
-      <BrandHeader />
 
       <section id="home" className="card hero" aria-label="פתיח">
         <div className="hero-inner">
