@@ -707,8 +707,8 @@ a {
   text-decoration: none;
   color: var(--text);
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   white-space: nowrap;
 }
 
@@ -747,12 +747,8 @@ a {
   color: transparent;
 }
 
-.home-nav-brand span {
-  background: linear-gradient(135deg, var(--gold), var(--gold-strong));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* Do NOT apply gold gradient to all spans in the brand.
+   Only the accent span inside .home-nav-name should be gold. */
 
 .home-nav-links {
   display: flex;
