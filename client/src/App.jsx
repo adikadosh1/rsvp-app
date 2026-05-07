@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import AdminShell from "./components/AdminShell.jsx";
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
@@ -7,6 +7,7 @@ const AdminLogin = lazy(() => import("./pages/AdminLogin.jsx"));
 const EventDashboard = lazy(() => import("./pages/EventDashboard.jsx"));
 const UploadGuests = lazy(() => import("./pages/UploadGuests.jsx"));
 const RSVPPage = lazy(() => import("./pages/RSVPPage.jsx"));
+const Home = lazy(() => import("./pages/Home.jsx"));
 const StartOwner = lazy(() => import("./pages/StartOwner.jsx"));
 const OwnerPortal = lazy(() => import("./pages/OwnerPortal.jsx"));
 const Terms = lazy(() => import("./pages/Terms.jsx"));
@@ -60,7 +61,7 @@ export default function App() {
         }
       >
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<AdminLogin />} />
           <Route path="/start" element={<StartOwner />} />
           <Route path="/owner/:ownerToken" element={<OwnerPortal />} />
