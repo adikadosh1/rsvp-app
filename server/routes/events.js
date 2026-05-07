@@ -365,9 +365,8 @@ router.post("/:eventId/send-invitations", async (req, res) => {
             .replaceAll("{{לינק}}", personalLink)
             .replaceAll("{{אירוע}}", normalizedEvent.event_name || "האירוע");
 
-          const finalBody = effectiveImageUrl
-            ? `${body}\n\nהזמנה דיגיטלית: ${effectiveImageUrl}`
-            : body;
+          // If we send the invitation as media, no need to include the image URL in the text.
+          const finalBody = body;
 
           logInfo("send-invitations:sending", { eventId, channel, guest_id: guest.id, name: g.full_name });
 

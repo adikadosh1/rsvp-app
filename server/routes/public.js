@@ -351,7 +351,8 @@ router.post("/owner/:ownerToken/send-invitations", async (req, res) => {
             .replaceAll("{{לינק}}", personalLink)
             .replaceAll("{{אירוע}}", normalizedEvent.event_name || "האירוע");
 
-          const finalBody = effectiveImageUrl ? `${body}\n\nהזמנה דיגיטלית: ${effectiveImageUrl}` : body;
+          // If we send the invitation as media, no need to include the image URL in the text.
+          const finalBody = body;
 
           const twilioResponse = await sendMessageToGuest({
             phone: guest.phone,
