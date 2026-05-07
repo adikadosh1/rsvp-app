@@ -4,6 +4,7 @@ import SendMessage from "../components/SendMessage.jsx";
 import { apiFetch } from "../lib/api.js";
 import Papa from "papaparse";
 import { useToast } from "../components/ToastProvider.jsx";
+import { guestsToCsvFile, isContactPickerSupported, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 export default function UploadGuests() {
   const { eventId } = useParams();
@@ -18,6 +19,7 @@ export default function UploadGuests() {
   const [dupInFile, setDupInFile] = useState(0);
   const [invalidPhones, setInvalidPhones] = useState(null);
   const [invalidLoading, setInvalidLoading] = useState(false);
+  const [contactsSupported] = useState(isContactPickerSupported());
 
   const storageKey = `hkham-upload-preview:${eventId}`;
 
@@ -166,6 +168,71 @@ export default function UploadGuests() {
     }
   };
 
+  const importFromContacts = async () => {
+    try {
+      clearList();
+      const { guests, dupInPick } = await pickGuestsFromContacts();
+      if (!guests.length) {
+        setResultText("לא נבחרו אנשי קשר עם טלפון.");
+        return;
+      }
+
+      const file = guestsToCsvFile(guests, "contacts.csv");
+      setCsvFile(file);
+      setDupInFile(dupInPick);
+      setPreviewGuests(guests.slice(0, 500));
+
+      const baseMsg = `נטענו ${guests.length} אורחים מאנשי קשר לתצוגה לפני אישור.`;
+      const dupMsg = dupInPick > 0 ? ` דולגו ${dupInPick} כפילויות טלפון בבחירה.` : "";
+
+      // Decide whether we must ask replace/add (only if event already has guests)
+      let nextNeedsChoice = false;
+      let nextMode = null;
+      try {
+        const meta = await apiFetch(`/guests/${eventId}/meta`);
+        if (meta.count > 0) {
+          nextNeedsChoice = true;
+          nextMode = null;
+        } else {
+          nextNeedsChoice = false;
+          nextMode = "add";
+        }
+      } catch (_e) {
+        nextNeedsChoice = false;
+        nextMode = "add";
+      }
+
+      setNeedsChoice(nextNeedsChoice);
+      setImportMode(nextMode);
+      setResultText(
+        nextNeedsChoice
+          ? `${baseMsg}${dupMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
+          : `${baseMsg}${dupMsg}`
+      );
+
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            previewGuests: guests.slice(0, 500),
+            resultText:
+              nextNeedsChoice
+                ? `${baseMsg}${dupMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
+                : `${baseMsg}${dupMsg}`,
+            importMode: nextMode,
+            needsChoice: nextNeedsChoice,
+            dupInFile: dupInPick
+          })
+        );
+      } catch (_e) {
+        // ignore
+      }
+    } catch (e) {
+      toast.push({ tone: "warning", title: "ייבוא אנשי קשר לא זמין", message: e.message });
+      setResultText(e.message);
+    }
+  };
+
   const importGuests = async () => {
     try {
       setLoading(true);
@@ -278,6 +345,11 @@ export default function UploadGuests() {
           <button type="button" className="btn" onClick={clearList} disabled={loading && previewGuests.length === 0 && !csvFile}>
             נקה רשימה
           </button>
+          {contactsSupported && (
+            <button type="button" className="btn btn-accent" onClick={importFromContacts} disabled={loading}>
+              ייבוא מאנשי קשר
+            </button>
+          )}
         </div>
 
         <div

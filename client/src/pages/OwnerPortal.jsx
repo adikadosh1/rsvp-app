@@ -4,6 +4,7 @@ import Papa from "papaparse";
 import { apiFetch } from "../lib/api.js";
 import { useToast } from "../components/ToastProvider.jsx";
 import BrandHeader from "../components/BrandHeader.jsx";
+import { guestsToCsvFile, isContactPickerSupported, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 const wizardSteps = ["פרטי אירוע", "מוזמנים", "הודעה ותמונה", "שליחה"];
 
@@ -22,6 +23,7 @@ export default function OwnerPortal() {
   const [importMode, setImportMode] = useState("add");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
+  const [contactsSupported] = useState(isContactPickerSupported());
 
   // Messaging
   const [channel, setChannel] = useState("sms");
@@ -200,6 +202,27 @@ export default function OwnerPortal() {
     const { guests, dupInFile: d } = parseCsvText(text);
     setDupInFile(d);
     setPreviewGuests(guests.slice(0, 500));
+  };
+
+  const importFromContacts = async () => {
+    try {
+      setPreviewGuests([]);
+      setImportResult("");
+      setCsvFile(null);
+      const { guests, dupInPick } = await pickGuestsFromContacts();
+      if (!guests.length) {
+        setImportResult("לא נבחרו אנשי קשר עם טלפון.");
+        return;
+      }
+      setDupInFile(dupInPick);
+      setPreviewGuests(guests.slice(0, 500));
+      const file = guestsToCsvFile(guests, "contacts.csv");
+      setCsvFile(file);
+      toast.push({ tone: "success", title: "נטען", message: `נטענו ${guests.length} אנשי קשר לתצוגה.` });
+    } catch (e) {
+      toast.push({ tone: "warning", title: "ייבוא אנשי קשר לא זמין", message: e.message });
+      setImportResult(e.message);
+    }
   };
 
   const importGuests = async () => {
@@ -535,6 +558,14 @@ export default function OwnerPortal() {
                 <div className="dropzone-sub">תוצג תצוגה מקדימה לפני שמירה.</div>
               </div>
             </div>
+
+            {contactsSupported && (
+              <div className="actions" style={{ marginTop: 10 }}>
+                <button className="btn btn-accent" type="button" onClick={importFromContacts} disabled={importing}>
+                  ייבוא מאנשי קשר
+                </button>
+              </div>
+            )}
 
             {previewGuests.length > 0 && (
               <div className="preview-box">
