@@ -16,7 +16,13 @@ export async function apiFetch(path, options = {}) {
   }
 
   if (!response.ok) {
-    if (response.status === 401 && path !== "/admin/login") {
+    const isAdminPath =
+      path === "/admin/login" ||
+      path.startsWith("/admin/") ||
+      path.startsWith("/events") ||
+      path.startsWith("/guests");
+    // Public pages (RSVP + owner portal) should not force admin login redirects on 401.
+    if (response.status === 401 && isAdminPath && path !== "/admin/login") {
       clearToken();
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
