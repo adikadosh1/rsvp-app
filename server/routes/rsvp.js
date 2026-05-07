@@ -27,7 +27,10 @@ async function fetchEventForGuest(eventId) {
     venue_name: data.venue_name ?? null,
     maps_url: data.maps_url ?? null,
     parking_info: data.parking_info ?? null,
-    contact_phone: data.contact_phone ?? null
+    contact_phone: data.contact_phone ?? null,
+    invitation_image_url: data.invitation_image_url ?? null,
+    message_template: data.message_template ?? null,
+    default_channel: data.default_channel ?? null
   };
 }
 
