@@ -32,13 +32,10 @@ export default function SendMessage({ eventId, onSent }) {
     if (!imageFile) return null;
     const formData = new FormData();
     formData.append("invitationImage", imageFile);
-
-    const response = await fetch(`${apiBase}/events/${eventId}/message-assets`, {
+    const data = await apiFetch(`/events/${eventId}/message-assets`, {
       method: "POST",
       body: formData
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.details ? `${data.error} (${data.details})` : data.error || "שגיאה בהעלאת תמונה");
     return data.imageUrl;
   };
 
