@@ -2076,6 +2076,11 @@ select:focus {
 
 .table-wrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper table {
+  min-width: 720px;
 }
 
 .dropzone {
