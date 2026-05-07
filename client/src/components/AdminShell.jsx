@@ -35,6 +35,7 @@ function NavItem({ to, icon, label }) {
 
 export default function AdminShell() {
   const [events, setEvents] = useState([]);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const lastEventId = useMemo(() => {
     try {
       return localStorage.getItem("hkham:lastEventId");
@@ -49,10 +50,43 @@ export default function AdminShell() {
       .catch(() => setEvents([]));
   }, []);
 
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setMobileNavOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileNavOpen]);
+
+  // Close drawer on route change
+  const loc = useLocation();
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [loc.pathname]);
+
   return (
     <div className="admin-shell">
       <div className="gold-line" aria-hidden="true" />
-      <aside className="sidebar">
+      <header className="admin-topbar" role="banner">
+        <button
+          type="button"
+          className="menu-btn"
+          aria-label={mobileNavOpen ? "סגור תפריט" : "פתח תפריט"}
+          aria-expanded={mobileNavOpen ? "true" : "false"}
+          onClick={() => setMobileNavOpen((v) => !v)}
+        >
+          <span className="menu-ic" aria-hidden="true" />
+        </button>
+        <Link className="topbar-brand" to="/dashboard" aria-label="מעבר לדשבורד">
+          <CrownMark />
+          <span className="topbar-title">הושבה כיד המלך</span>
+        </Link>
+      </header>
+
+      {mobileNavOpen ? <div className="sidebar-backdrop" onMouseDown={() => setMobileNavOpen(false)} aria-hidden="true" /> : null}
+
+      <aside className={`sidebar ${mobileNavOpen ? "open" : ""}`} aria-label="תפריט ניהול">
         <div className="logo">
           <div className="logo-eyebrow">RSVP PREMIUM</div>
           <div className="logo-row">

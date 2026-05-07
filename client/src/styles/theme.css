@@ -297,6 +297,82 @@ a {
   display: flex;
 }
 
+.admin-topbar {
+  display: none;
+}
+
+.menu-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 11, 14, 0.55);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+
+.menu-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-soft), var(--ring);
+}
+
+.menu-ic {
+  width: 18px;
+  height: 12px;
+  position: relative;
+}
+
+.menu-ic::before,
+.menu-ic::after,
+.menu-ic {
+  background: transparent;
+}
+
+.menu-ic::before,
+.menu-ic::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(247, 247, 251, 0.88);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.menu-ic::before {
+  top: 0;
+}
+
+.menu-ic::after {
+  bottom: 0;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.topbar-brand .logo-mark {
+  width: 24px;
+  height: 24px;
+}
+
+.topbar-title {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
 .gold-line {
   position: fixed;
   top: 0;
@@ -543,19 +619,53 @@ a {
 }
 
 @media (max-width: 880px) {
-  .sidebar {
-    position: sticky;
-    width: 100%;
-    height: auto;
-    right: auto;
+  .admin-shell {
+    flex-direction: column;
   }
+
+  .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(10, 11, 14, 0.72);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(12px);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: min(320px, 88vw);
+    transform: translateX(105%);
+    transition: transform 200ms ease;
+    z-index: 36;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .sidebar.open {
+    transform: translateX(0%);
+  }
+
   .admin-main {
     margin-right: 0;
     width: 100%;
     padding: 18px 12px 40px;
-  }
-  .admin-shell {
-    flex-direction: column;
   }
 }
 
