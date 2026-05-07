@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import { apiFetch } from "../lib/api.js";
 import { useToast } from "../components/ToastProvider.jsx";
 import BrandHeader from "../components/BrandHeader.jsx";
-import { guestsToCsvFile, isContactPickerSupported, pickGuestsFromContacts } from "../utils/contactsImport.js";
+import { guestsToCsvFile, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 const wizardSteps = ["פרטי אירוע", "מוזמנים", "הודעה ותמונה", "שליחה"];
 
@@ -23,7 +23,6 @@ export default function OwnerPortal() {
   const [importMode, setImportMode] = useState("add");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
-  const [contactsSupported] = useState(isContactPickerSupported());
 
   // Messaging
   const [channel, setChannel] = useState("sms");
@@ -559,13 +558,11 @@ export default function OwnerPortal() {
               </div>
             </div>
 
-            {contactsSupported && (
-              <div className="actions" style={{ marginTop: 10 }}>
-                <button className="btn btn-accent" type="button" onClick={importFromContacts} disabled={importing}>
-                  ייבוא מאנשי קשר
-                </button>
-              </div>
-            )}
+            <div className="actions" style={{ marginTop: 10 }}>
+              <button className="btn btn-accent" type="button" onClick={importFromContacts} disabled={importing}>
+                ייבוא מאנשי קשר (Android/Chrome)
+              </button>
+            </div>
 
             {previewGuests.length > 0 && (
               <div className="preview-box">

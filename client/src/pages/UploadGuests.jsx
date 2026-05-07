@@ -4,7 +4,7 @@ import SendMessage from "../components/SendMessage.jsx";
 import { apiFetch } from "../lib/api.js";
 import Papa from "papaparse";
 import { useToast } from "../components/ToastProvider.jsx";
-import { guestsToCsvFile, isContactPickerSupported, pickGuestsFromContacts } from "../utils/contactsImport.js";
+import { guestsToCsvFile, pickGuestsFromContacts } from "../utils/contactsImport.js";
 
 export default function UploadGuests() {
   const { eventId } = useParams();
@@ -19,7 +19,6 @@ export default function UploadGuests() {
   const [dupInFile, setDupInFile] = useState(0);
   const [invalidPhones, setInvalidPhones] = useState(null);
   const [invalidLoading, setInvalidLoading] = useState(false);
-  const [contactsSupported] = useState(isContactPickerSupported());
 
   const storageKey = `hkham-upload-preview:${eventId}`;
 
@@ -345,11 +344,9 @@ export default function UploadGuests() {
           <button type="button" className="btn" onClick={clearList} disabled={loading && previewGuests.length === 0 && !csvFile}>
             נקה רשימה
           </button>
-          {contactsSupported && (
-            <button type="button" className="btn btn-accent" onClick={importFromContacts} disabled={loading}>
-              ייבוא מאנשי קשר
-            </button>
-          )}
+          <button type="button" className="btn btn-accent" onClick={importFromContacts} disabled={loading}>
+            ייבוא מאנשי קשר (Android/Chrome)
+          </button>
         </div>
 
         <div
