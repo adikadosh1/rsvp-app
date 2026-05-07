@@ -51,7 +51,8 @@ export function isLikelyE164(phone) {
 export async function sendMessageToGuest({
   phone,
   body,
-  channel = "sms"
+  channel = "sms",
+  mediaUrl = null
 }) {
   const cleanPhone = normalizePhone(phone);
   const isWhatsapp = channel === "whatsapp";
@@ -72,6 +73,7 @@ export async function sendMessageToGuest({
   return twilioClient.messages.create({
     from: sender,
     to,
-    body
+    body,
+    ...(mediaUrl ? { mediaUrl: Array.isArray(mediaUrl) ? mediaUrl : [mediaUrl] } : {})
   });
 }

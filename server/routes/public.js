@@ -353,7 +353,12 @@ router.post("/owner/:ownerToken/send-invitations", async (req, res) => {
 
           const finalBody = effectiveImageUrl ? `${body}\n\nהזמנה דיגיטלית: ${effectiveImageUrl}` : body;
 
-          const twilioResponse = await sendMessageToGuest({ phone: guest.phone, body: finalBody, channel });
+          const twilioResponse = await sendMessageToGuest({
+            phone: guest.phone,
+            body: finalBody,
+            channel,
+            mediaUrl: effectiveImageUrl || null
+          });
           return { ok: true, guestId: guest.id, name: g.full_name, phone: guest.phone, sid: twilioResponse.sid, status: twilioResponse.status };
         } catch (err) {
           const msg = formatTwilioErr(err) || err?.message || "Unknown error";

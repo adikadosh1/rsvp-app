@@ -374,7 +374,8 @@ router.post("/:eventId/send-invitations", async (req, res) => {
           const twilioResponse = await sendMessageToGuest({
             phone: guest.phone,
             body: finalBody,
-            channel
+            channel,
+            mediaUrl: effectiveImageUrl || null
           });
 
           logInfo("send-invitations:sent", { eventId, channel, guest_id: guest.id, sid: twilioResponse.sid, status: twilioResponse.status });
