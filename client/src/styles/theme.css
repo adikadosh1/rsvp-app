@@ -721,9 +721,30 @@ a {
 }
 
 .home-nav-brand-text {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.home-nav-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: rgba(242, 211, 138, 0.72);
+  text-transform: uppercase;
+}
+
+.home-nav-name {
+  font-family: var(--serif);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+
+.home-nav-name span {
+  background: linear-gradient(135deg, var(--gold), var(--gold-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .home-nav-brand span {

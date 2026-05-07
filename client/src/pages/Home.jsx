@@ -89,7 +89,10 @@ function TopNav() {
         <a className="home-nav-brand" href="#home" aria-label="חזרה לדף הבית">
           <CrownMark />
           <span className="home-nav-brand-text">
-            הושבה <span>כיד המלך</span>
+            <span className="home-nav-eyebrow">RSVP PREMIUM</span>
+            <span className="home-nav-name">
+              הושבה <span>כיד המלך</span>
+            </span>
           </span>
         </a>
         <div className="home-nav-links">{links}</div>
