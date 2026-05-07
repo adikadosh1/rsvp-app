@@ -695,7 +695,10 @@ a {
   padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 16px;
-  background: rgba(11, 12, 15, 0.55);
+  background:
+    radial-gradient(520px 220px at 10% 0%, rgba(242, 211, 138, 0.10), transparent 58%),
+    radial-gradient(520px 240px at 92% 10%, rgba(79, 124, 255, 0.10), transparent 60%),
+    rgba(11, 12, 15, 0.62);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow-soft);
 }
@@ -712,12 +715,18 @@ a {
   white-space: nowrap;
 }
 
+.home-nav-brand:hover .home-nav-mark {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.6));
+}
+
 .home-nav-mark {
   width: 22px;
   height: 22px;
   color: var(--gold-strong);
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55));
   flex-shrink: 0;
+  transition: transform 180ms ease, filter 180ms ease;
 }
 
 .home-nav-brand-text {
@@ -728,8 +737,10 @@ a {
 
 .home-nav-eyebrow {
   font-size: 10px;
-  letter-spacing: 0.26em;
-  color: rgba(242, 211, 138, 0.72);
+  font-family: var(--font);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  color: rgba(247, 247, 251, 0.62);
   text-transform: uppercase;
 }
 
@@ -756,6 +767,14 @@ a {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-start;
+}
+
+.home-nav-link {
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.home-nav-link:hover {
+  transform: translateY(-1px);
 }
 
 .home-nav-actions {
