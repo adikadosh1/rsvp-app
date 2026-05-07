@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiBase, apiFetch } from "../lib/api.js";
+import { useToast } from "./ToastProvider.jsx";
 
 export default function SendMessage({ eventId, onSent }) {
+  const toast = useToast();
   const [messageTemplate, setMessageTemplate] = useState(
     "שלום {{שם}}, נשמח לאישור הגעתך לאירוע {{אירוע}}. לאישור מהיר לחצו כאן: {{לינק}}"
   );
@@ -11,6 +13,20 @@ export default function SendMessage({ eventId, onSent }) {
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [failures, setFailures] = useState([]);
+  const [skippedList, setSkippedList] = useState([]);
+  const [preflight, setPreflight] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch(`/events/${eventId}/send-preflight`)
+      .then((data) => {
+        if (!cancelled) setPreflight(data);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
 
   const handleUploadImage = async () => {
     if (!imageFile) return null;
@@ -22,7 +38,7 @@ export default function SendMessage({ eventId, onSent }) {
       body: formData
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "שגיאה בהעלאת תמונה");
+    if (!response.ok) throw new Error(data.details ? `${data.error} (${data.details})` : data.error || "שגיאה בהעלאת תמונה");
     return data.imageUrl;
   };
 
@@ -30,6 +46,7 @@ export default function SendMessage({ eventId, onSent }) {
     try {
       setLoading(true);
       setFailures([]);
+      setSkippedList([]);
       setStatusText("שומר ומכין שליחה...");
 
       let imageUrl = invitationImageUrl;
@@ -51,11 +68,24 @@ export default function SendMessage({ eventId, onSent }) {
         body: JSON.stringify({ channel, invitationImageUrl: imageUrl })
       });
 
-      setStatusText(`נשלחו ${sendResult.sent} הודעות בהצלחה. נכשלו ${sendResult.failed}.`);
+      const skipped = Number(sendResult.skipped || 0);
+      const failed = Number(sendResult.failed || 0);
+      const sent = Number(sendResult.sent || 0);
+      setSkippedList(sendResult.skippedList || []);
       setFailures(sendResult.failures || []);
+
+      setStatusText(
+        `נשלחו ${sent} הודעות. נכשלו ${failed}. דולגו ${skipped}.${sendResult.sandboxHint ? ` ${sendResult.sandboxHint}` : ""}`
+      );
+      toast.push({
+        tone: failed > 0 ? "warning" : "success",
+        title: "סיכום שליחה",
+        message: `נשלחו ${sent} | נכשלו ${failed} | דולגו ${skipped}`
+      });
       onSent?.();
     } catch (error) {
       setStatusText(error.message);
+      toast.push({ tone: "danger", title: "שליחה נכשלה", message: error.message });
     } finally {
       setLoading(false);
     }
@@ -64,6 +94,19 @@ export default function SendMessage({ eventId, onSent }) {
   return (
     <section className="card">
       <h3>שליחת הודעות</h3>
+
+      {preflight && (
+        <div className="banner banner-info" role="status">
+          <div>אורחים באירוע: {preflight.guestCount}</div>
+          {preflight.invalidPhone > 0 && <div>מספרי טלפון לא תקינים: {preflight.invalidPhone}</div>}
+          {preflight.missingToken > 0 && <div>חסר טוקן אישי: {preflight.missingToken}</div>}
+          {!preflight.hasMessageTemplate && <div>נדרש לשמור נוסח הודעה לפני שליחה.</div>}
+          {!preflight.publicAppUrlSet && <div>שים לב: חסר PUBLIC_APP_URL בשרת — הלינקים בהודעה עלולים להיות שגויים.</div>}
+          {channel === "sms" && !preflight.twilioSmsFromSet && <div>חסר TWILIO_SMS_FROM בסביבת השרת.</div>}
+          {channel === "whatsapp" && !preflight.twilioWhatsappFromSet && <div>חסר TWILIO_WHATSAPP_FROM בסביבת השרת.</div>}
+        </div>
+      )}
+
       <label className="field">
         <span>ערוץ שליחה</span>
         <select value={channel} onChange={(e) => setChannel(e.target.value)}>
@@ -88,6 +131,33 @@ export default function SendMessage({ eventId, onSent }) {
         {loading ? "מבצע שליחה..." : "שמור ושלח לכל האורחים"}
       </button>
       {statusText && <p className="status">{statusText}</p>}
+
+      {skippedList.length > 0 && (
+        <div className="card" style={{ marginTop: 12 }}>
+          <h4>דולגו (לדוגמה)</h4>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>שם</th>
+                  <th>טלפון</th>
+                  <th>סיבה</th>
+                </tr>
+              </thead>
+              <tbody>
+                {skippedList.map((f) => (
+                  <tr key={f.guestId}>
+                    <td>{f.name || "-"}</td>
+                    <td>{f.phone || "-"}</td>
+                    <td>{f.error || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {failures.length > 0 && (
         <div className="card" style={{ marginTop: 12 }}>
           <h4>שגיאות שליחה (דוגמה)</h4>

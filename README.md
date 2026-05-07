@@ -20,6 +20,7 @@
    - מסך הצלחה עם "הוסף ליומן" ו"נווט לאירוע"
 6. דשבורד מנהל בזמן אמת (רענון כל 10 שניות)
 7. שליחת תזכורת אוטומטית למי שלא ענה
+8. Self‑Serve לבעל אירוע: יצירת קישור ציבורי, עדכון פרטי אירוע והעלאת מוזמנים ללא גישת מנהל
 
 ## מבנה הפרויקט
 
@@ -47,6 +48,7 @@ database/
 3. עדכון משתני סביבה אמיתיים ב-`.env`
 4. הרצת סכמת DB ב-Supabase SQL Editor:
    - הדבק את `database/schema.sql`
+   - ודא שיש עמודה `owner_token` בטבלת `events` (כלול בקובץ schema.sql)
    - צור Bucket בשם `invitation-images` (Public)
 5. הרצה בפיתוח:
    ```bash
@@ -54,17 +56,28 @@ database/
    ```
 6. פתיחה בדפדפן:
    - ממשק מנהל: `http://localhost:5173/dashboard`
+   - יצירת קישור לבעל אירוע: `http://localhost:5173/start`
 
 ## פריסה ל-Vercel
 
-### Frontend
-- Root directory: `./`
-- Build command: `npm run build`
-- Output directory: `dist`
+### Frontend (מומלץ)
+1. ייבוא ריפו מ-GitHub ל-Vercel → New Project.
+2. הגדרות בנייה:
+   - **Framework**: Vite
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
+3. משתני סביבה ב-Vercel (Production):
+   - `VITE_API_BASE_URL` — כתובת ה-API הציבורית שלך עם סיומת `/api`, למשל `https://api.example.com/api`
 
-### Backend
-- ניתן לפרוס כ-Vercel Serverless Functions או כשירות Node נפרד.
-- אם פורסים בנפרד, יש לעדכן `VITE_API_BASE_URL`.
+### Backend (Express)
+השרת הנוכחי הוא אפליקציית Node רציפה (`server/index.js`). ב-Vercel זה דורש התאמה ל-Serverless או לפרוס את ה-Backend כשירות נפרד.
+
+**אפשרות מומלצת לפרודקשן:** Render / Fly.io / Railway עבור ה-API, ו-Vercel רק ל-Frontend.
+
+משתנים חשובים בשרת ה-API:
+- `PUBLIC_APP_URL` — כתובת האתר של האורחים (למשל הדומיין של Vercel), לצורך קישורי RSVP בהודעות.
+- `PUBLIC_API_URL` — כתובת בסיס של שרת ה-API (למשל `https://api.example.com`), לצורך קישורי תמונות כשמשתמשים בשמירת קבצים מקומית תחת `/uploads`.
 
 ## משתני סביבה חשובים
 
@@ -75,10 +88,12 @@ database/
 - `TWILIO_SMS_FROM`
 - `TWILIO_WHATSAPP_FROM`
 - `PUBLIC_APP_URL`
+- `PUBLIC_API_URL` (אופציונלי — לקישורי קבצים מהשרת)
 
 ## הערות Production
 
 - מומלץ להוסיף אימות מנהל (Admin Auth) לפני העלאה ושליחה
 - מומלץ להקשיח CORS לפי דומיין סופי בלבד
 - מומלץ להוסיף Rate Limiting לנתיבי `send-invitations` ו-`send-reminders`
+- מומלץ להוסיף Rate Limiting גם לנתיבים הציבוריים תחת `/api/public/*` (כדי למנוע abuse)
 - מומלץ להוסיף Audit Trail מפורט לשליחות

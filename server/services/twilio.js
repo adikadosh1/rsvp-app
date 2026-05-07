@@ -39,6 +39,15 @@ function normalizePhone(phone) {
   return p;
 }
 
+export function normalizeIsraelPhone(phone) {
+  return normalizePhone(phone);
+}
+
+export function isLikelyE164(phone) {
+  const n = normalizePhone(phone);
+  return Boolean(n && n.startsWith("+") && n.length >= 11 && n.length <= 16);
+}
+
 export async function sendMessageToGuest({
   phone,
   body,

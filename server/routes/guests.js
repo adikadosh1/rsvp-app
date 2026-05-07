@@ -4,13 +4,15 @@ import crypto from "crypto";
 import Papa from "papaparse";
 import iconv from "iconv-lite";
 import { supabase } from "../services/supabase.js";
+import { normalizeResponseRow } from "../utils/rsvpNormalize.js";
+import { isLikelyE164, normalizeIsraelPhone } from "../services/twilio.js";
 
 const router = express.Router();
 const upload = multer();
 
 function normalizePhone(raw) {
   if (!raw) return "";
-  return String(raw).trim().replace(/\s|-/g, "");
+  return normalizeIsraelPhone(String(raw).trim());
 }
 
 function pickRowValue(row, keys) {
@@ -31,10 +33,23 @@ function decodeCsvBuffer(buffer) {
   return win1255;
 }
 
+function detectDelimiter(firstLine) {
+  const line = String(firstLine || "").replace(/^\uFEFF/, "");
+  const commas = (line.match(/,/g) || []).length;
+  const semis = (line.match(/;/g) || []).length;
+  return semis > commas ? ";" : ",";
+}
+
 function parseCsvToRows(csvContent) {
-  const result = Papa.parse(csvContent, {
+  const withoutBom = String(csvContent || "").replace(/^\uFEFF/, "");
+  const firstNl = withoutBom.indexOf("\n");
+  const firstLine = firstNl >= 0 ? withoutBom.slice(0, firstNl) : withoutBom;
+  const delimiter = detectDelimiter(firstLine);
+
+  const result = Papa.parse(withoutBom, {
     header: true,
     skipEmptyLines: true,
+    delimiter,
     transformHeader: (h) => String(h || "").trim(),
     transform: (v) => (typeof v === "string" ? v.trim() : v)
   });
@@ -185,7 +200,13 @@ router.post("/upload-file", upload.single("csv"), async (req, res) => {
     }
 
     const data = await insertGuestsWithSchemaFallback(toInsert);
-    res.status(201).json({ count: data.length, guests: data.map(normalizeGuestRow) });
+    const skippedDuplicates = uniqueByPhone.length - toInsert.length;
+    res.status(201).json({
+      count: data.length,
+      guests: data.map(normalizeGuestRow),
+      skipped: skippedDuplicates,
+      mode
+    });
   } catch (error) {
     console.error("Guest upload-file failed:", error);
     res.status(500).json({ error: "ייבוא האורחים נכשל.", details: error?.message || "Unknown error" });
@@ -207,42 +228,149 @@ router.get("/:eventId", async (req, res) => {
     const normalizedGuests = guestRows.map(normalizeGuestRow);
     const guestIds = normalizedGuests.map((g) => g.id).filter(Boolean);
 
-    // Load RSVP responses with fallback between `responses` and `rsvp_responses`
-    let responses = [];
-    if (guestIds.length > 0) {
-      const primary = await supabase
-        .from("responses")
-        .select("*")
-        .in("guest_id", guestIds);
-
-      if (!primary.error) {
-        responses = primary.data || [];
-      } else {
-        const fallback = await supabase
-          .from("rsvp_responses")
-          .select("*")
-          .in("guest_id", guestIds);
-        if (!fallback.error) responses = fallback.data || [];
-      }
-    }
-
+    // Load RSVP responses.
+    // Important: some projects have BOTH tables (`responses` legacy + `rsvp_responses` new).
+    // In practice, legacy may keep updating status/attendees while new stores meal counts.
+    // So we merge: pick the latest row for "core" (status/attendees), but take meal counts from whichever row has them.
     const latestByGuestId = new Map();
-    for (const r of responses) {
-      const respondedAt = r.updated_at || r.responded_at || r.created_at || "1970-01-01";
-      const prev = latestByGuestId.get(r.guest_id);
-      const prevAt = prev ? (prev.updated_at || prev.responded_at || prev.created_at || "1970-01-01") : null;
-      if (!prevAt || new Date(respondedAt) > new Date(prevAt)) latestByGuestId.set(r.guest_id, r);
+    if (guestIds.length > 0) {
+      const [rLegacy, rNew] = await Promise.all([
+        supabase.from("responses").select("*").in("guest_id", guestIds),
+        supabase.from("rsvp_responses").select("*").in("guest_id", guestIds)
+      ]);
+
+      const legacyRows = !rLegacy.error ? (rLegacy.data || []) : [];
+      const newRows = !rNew.error ? (rNew.data || []) : [];
+
+      const pickLatest = (rows) => {
+        const m = new Map();
+        for (const r of rows) {
+          const respondedAt = r.updated_at || r.responded_at || r.created_at || "1970-01-01";
+          const prev = m.get(r.guest_id);
+          const prevAt = prev ? (prev.updated_at || prev.responded_at || prev.created_at || "1970-01-01") : null;
+          if (!prevAt || new Date(respondedAt) > new Date(prevAt)) m.set(r.guest_id, r);
+        }
+        return m;
+      };
+
+      const latestLegacy = pickLatest(legacyRows);
+      const latestNew = pickLatest(newRows);
+
+      const toMs = (r) => new Date(r?.updated_at || r?.responded_at || r?.created_at || 0).getTime() || 0;
+
+      for (const gid of guestIds) {
+        const l = latestLegacy.get(gid) || null;
+        const n = latestNew.get(gid) || null;
+        if (!l && !n) continue;
+
+        const core = toMs(n) >= toMs(l) ? (n || l) : (l || n);
+        const meals = n || l;
+
+        // Merge: keep core fields, but ensure meal columns are present when available.
+        const merged = { ...(core || {}), ...(meals || {}) };
+        latestByGuestId.set(gid, merged);
+      }
     }
 
     res.json(
       normalizedGuests.map((g) => ({
         ...g,
-        latestResponse: latestByGuestId.get(g.id) || null
+        latestResponse: normalizeResponseRow(latestByGuestId.get(g.id)) || null
       }))
     );
   } catch (error) {
     console.error("Fetch guests failed:", error);
     res.status(500).json({ error: "שליפת אורחים נכשלה." });
+  }
+});
+
+router.get("/:eventId/invalid-phones", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const limit = Math.max(1, Math.min(300, Number(req.query?.limit || 200) || 200));
+    const { data: guests, error } = await supabase
+      .from("guests")
+      .select("id,full_name,name,phone,created_at")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: true })
+      .limit(5000);
+    if (error) throw error;
+
+    const invalid = [];
+    for (const row of guests || []) {
+      const g = normalizeGuestRow(row);
+      const phone = row.phone || "";
+      if (!isLikelyE164(phone)) {
+        invalid.push({ id: row.id, name: g.full_name, phone });
+        if (invalid.length >= limit) break;
+      }
+    }
+    res.json({ totalChecked: (guests || []).length, invalidCount: invalid.length, invalid });
+  } catch (error) {
+    console.error("admin:invalid phones failed:", error);
+    res.status(500).json({ error: "בדיקת טלפונים נכשלה.", details: error?.message || "Unknown error" });
+  }
+});
+
+router.post("/:eventId/fix-phones", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { data: guests, error } = await supabase
+      .from("guests")
+      .select("id,phone,created_at")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: true })
+      .limit(5000);
+    if (error) throw error;
+
+    const rows = guests || [];
+    const desiredById = new Map();
+    const groups = new Map();
+    for (const r of rows) {
+      const desired = normalizeIsraelPhone(r.phone || "");
+      desiredById.set(r.id, desired);
+      if (!groups.has(desired)) groups.set(desired, []);
+      groups.get(desired).push(r.id);
+    }
+
+    const duplicates = [];
+    const allowedIds = new Set();
+    for (const [p, ids] of groups.entries()) {
+      if (!p) continue;
+      if (ids.length === 1) {
+        allowedIds.add(ids[0]);
+      } else {
+        allowedIds.add(ids[0]);
+        duplicates.push({ phone: p, guestIds: ids, keptGuestId: ids[0] });
+      }
+    }
+
+    let updated = 0;
+    let skipped = 0;
+    const updatedIds = [];
+    for (const r of rows) {
+      const desired = desiredById.get(r.id) || "";
+      if (!desired || desired === (r.phone || "")) {
+        skipped += 1;
+        continue;
+      }
+      if (!allowedIds.has(r.id)) {
+        skipped += 1;
+        continue;
+      }
+      const upd = await supabase.from("guests").update({ phone: desired }).eq("id", r.id);
+      if (upd.error) {
+        skipped += 1;
+        continue;
+      }
+      updated += 1;
+      updatedIds.push(r.id);
+    }
+
+    res.json({ total: rows.length, updated, skipped, duplicates: duplicates.slice(0, 50), updatedIds });
+  } catch (error) {
+    console.error("admin:fix phones failed:", error);
+    res.status(500).json({ error: "תיקון טלפונים נכשל.", details: error?.message || "Unknown error" });
   }
 });
 

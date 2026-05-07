@@ -4,7 +4,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { mkdir, writeFile } from "fs/promises";
 import { supabase, uploadInvitationImage } from "../services/supabase.js";
-import { sendMessageToGuest } from "../services/twilio.js";
+import { sendMessageToGuest, isLikelyE164 } from "../services/twilio.js";
+import { logInfo, logWarn } from "../utils/logger.js";
+import { normalizeResponseRow } from "../utils/rsvpNormalize.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
@@ -87,6 +89,13 @@ async function updateEventMessageConfigWithSchemaFallback({ eventId, messageTemp
   throw new Error("Failed to update message config due to schema mismatch.");
 }
 
+function formatTwilioErr(err) {
+  const code = err?.code ?? err?.status;
+  const msg = err?.message || String(err);
+  const more = err?.moreInfo || err?.details;
+  return [msg, code, more].filter(Boolean).join(" | ");
+}
+
 router.post("/", async (req, res) => {
   try {
     const { eventName, eventDate, venueName, mapsUrl, parkingInfo, contactPhone } = req.body;
@@ -112,6 +121,140 @@ router.post("/", async (req, res) => {
       error: "יצירת אירוע נכשלה.",
       details: error?.message || "Unknown error"
     });
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(25);
+    if (error) throw error;
+    res.json((data || []).map(normalizeEventRow));
+  } catch (error) {
+    console.error("List events failed:", error);
+    res.status(500).json({ error: "שליפת אירועים נכשלה.", details: error?.message || "Unknown error" });
+  }
+});
+
+router.get("/:eventId/send-preflight", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const [{ data: ev, error: evErr }, { data: guests, error: gErr }] = await Promise.all([
+      supabase.from("events").select("*").eq("id", eventId).single(),
+      supabase.from("guests").select("*").eq("event_id", eventId)
+    ]);
+    if (evErr) throw evErr;
+    if (gErr) throw gErr;
+
+    const normalizedEvent = normalizeEventRow(ev);
+    let invalidPhone = 0;
+    let missingToken = 0;
+    for (const g of guests || []) {
+      const ng = normalizeGuestRow(g);
+      if (!ng.invite_token) missingToken += 1;
+      if (!isLikelyE164(g.phone)) invalidPhone += 1;
+    }
+
+    res.json({
+      guestCount: (guests || []).length,
+      invalidPhone,
+      missingToken,
+      hasMessageTemplate: Boolean(normalizedEvent.message_template),
+      publicAppUrlSet: Boolean(process.env.PUBLIC_APP_URL),
+      twilioSmsFromSet: Boolean(process.env.TWILIO_SMS_FROM),
+      twilioWhatsappFromSet: Boolean(process.env.TWILIO_WHATSAPP_FROM),
+      sandboxHint:
+        "ב-Twilio Sandbox רק מספרים שהצטרפו לסנדבוקס יכולים לקבל הודעות. נדרש גם קוד JOIN מהטלפון של הנמען."
+    });
+  } catch (error) {
+    console.error("Preflight failed:", error);
+    res.status(500).json({ error: "שגיאה בבדיקת מוכנות שליחה." });
+  }
+});
+
+router.get("/:eventId/response-timeline", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const now = Date.now();
+    const start = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+    // Guests table schema may vary (new: full_name, legacy: name). Use a safe fallback.
+    let guestRows = [];
+    {
+      const r1 = await supabase.from("guests").select("id,full_name,name").eq("event_id", eventId);
+      if (!r1.error) {
+        guestRows = r1.data || [];
+      } else {
+        const msg = r1.error?.message || "";
+        if (msg.includes("full_name") || msg.toLowerCase().includes("column") || msg.toLowerCase().includes("does not exist")) {
+          const r2 = await supabase.from("guests").select("id,name").eq("event_id", eventId);
+          if (r2.error) throw r2.error;
+          guestRows = r2.data || [];
+        } else {
+          throw r1.error;
+        }
+      }
+    }
+
+    const guestIds = (guestRows || []).map((g) => g.id).filter(Boolean);
+    if (guestIds.length === 0) {
+      return res.json({
+        byHour: Array.from({ length: 24 }, (_, i) => ({ hourLabel: `${i}`, count: 0 })),
+        recent: []
+      });
+    }
+
+    const fetchFrom = async (table) => {
+      const r = await supabase
+        .from(table)
+        .select("*")
+        .in("guest_id", guestIds)
+        .gte("updated_at", start);
+      if (!r.error) return r.data || [];
+      // Some legacy rows may not have updated_at; try created_at/responded_at by pulling all and filtering in-memory (small window).
+      const r2 = await supabase.from(table).select("*").in("guest_id", guestIds);
+      if (r2.error) return [];
+      return (r2.data || []).filter((row) => {
+        const t = new Date(row.updated_at || row.responded_at || row.created_at || 0).getTime();
+        return Number.isFinite(t) && t >= now - 24 * 60 * 60 * 1000;
+      });
+    };
+
+    let rows = await fetchFrom("responses");
+    if (!rows.length) rows = await fetchFrom("rsvp_responses");
+
+    const buckets = Array.from({ length: 24 }, (_, i) => ({ hourLabel: `${i}`, count: 0 }));
+    const recent = [];
+    for (const row of rows) {
+      const nr = normalizeResponseRow(row);
+      const ts = new Date(nr.updated_at || 0).getTime();
+      if (!Number.isFinite(ts)) continue;
+      const diffH = Math.floor((now - ts) / (60 * 60 * 1000));
+      if (diffH < 0 || diffH >= 24) continue;
+      const idx = 24 - 1 - diffH;
+      buckets[idx].count += 1;
+      recent.push(nr);
+    }
+
+    recent.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    const nameByGuestId = new Map((guestRows || []).map((g) => [g.id, g.full_name ?? g.name ?? ""]));
+
+    res.json({
+      byHour: buckets,
+      recent: recent.slice(0, 12).map((r) => ({
+        guest_id: r.guest_id,
+        name: nameByGuestId.get(r.guest_id) || "",
+        status: r.status || "",
+        attendees_count: r.attendees_count ?? null,
+        updated_at: r.updated_at || null
+      }))
+    });
+  } catch (error) {
+    console.error("response-timeline failed:", error);
+    res.status(500).json({ error: "שליפת timeline נכשלה.", details: error?.message || "Unknown error" });
   }
 });
 
@@ -211,6 +354,9 @@ router.post("/:eventId/send-invitations", async (req, res) => {
         const safeMeta = { guest_id: guest.id, name: g.full_name, raw_phone: guest.phone };
 
         try {
+          if (!isLikelyE164(guest.phone)) {
+            return { ok: false, skipped: true, guestId: guest.id, name: g.full_name, phone: guest.phone, error: "מספר טלפון לא תקין (נדרש פורמט בינלאומי, למשל +9725...)" };
+          }
           if (!g.invite_token) throw new Error("לא נמצא טוקן אישי לאורח.");
 
           const personalLink = `${baseUrl}/rsvp/${g.invite_token}`;
@@ -223,7 +369,7 @@ router.post("/:eventId/send-invitations", async (req, res) => {
             ? `${body}\n\nהזמנה דיגיטלית: ${effectiveImageUrl}`
             : body;
 
-          console.log("[send-invitations] sending", { eventId, channel, ...safeMeta });
+          logInfo("send-invitations:sending", { eventId, channel, guest_id: guest.id, name: g.full_name });
 
           const twilioResponse = await sendMessageToGuest({
             phone: guest.phone,
@@ -231,7 +377,7 @@ router.post("/:eventId/send-invitations", async (req, res) => {
             channel
           });
 
-          console.log("[send-invitations] sent", { eventId, channel, ...safeMeta, sid: twilioResponse.sid, status: twilioResponse.status });
+          logInfo("send-invitations:sent", { eventId, channel, guest_id: guest.id, sid: twilioResponse.sid, status: twilioResponse.status });
 
           // Optional logging table (may not exist in legacy schema)
           try {
@@ -248,19 +394,23 @@ router.post("/:eventId/send-invitations", async (req, res) => {
 
           return { ok: true, guestId: guest.id, name: g.full_name, phone: guest.phone, sid: twilioResponse.sid, status: twilioResponse.status };
         } catch (err) {
-          const msg = err?.message || "Unknown error";
-          const more = err?.moreInfo || err?.details || err?.code || null;
-          console.warn("[send-invitations] failed", { eventId, channel, ...safeMeta, error: msg, more });
+          const msg = formatTwilioErr(err) || err?.message || "Unknown error";
+          logWarn("send-invitations:failed", { eventId, channel, guest_id: guest.id, error: msg });
           return { ok: false, guestId: guest.id, name: g.full_name, phone: guest.phone, error: msg };
         }
       })
     );
 
-    const failedItems = perGuest.filter((r) => !r.ok);
+    const failedItems = perGuest.filter((r) => !r.ok && !r.skipped);
+    const skippedItems = perGuest.filter((r) => r.skipped);
     res.json({
-      sent: perGuest.length - failedItems.length,
+      sent: perGuest.filter((r) => r.ok).length,
       failed: failedItems.length,
-      failures: failedItems.slice(0, 25)
+      skipped: skippedItems.length,
+      failures: failedItems.slice(0, 25),
+      skippedList: skippedItems.slice(0, 25),
+      sandboxHint:
+        "אם כל הנמענים נכשלו: ב-Twilio Sandbox יש לוודא שהמספר נרשם ב-join, או לשדרג לחשבון מלא."
     });
   } catch (error) {
     console.error("Send invitations failed:", error);
@@ -273,28 +423,47 @@ router.post("/:eventId/send-reminders", async (req, res) => {
     const { eventId } = req.params;
     const { channel = "sms", reminderText } = req.body;
     const baseUrl = process.env.PUBLIC_APP_URL;
+    if (!baseUrl) return res.status(500).json({ error: "חסר PUBLIC_APP_URL בקובץ הסביבה." });
 
-    const { data: guests, error } = await supabase
-      .from("guests")
-      .select("id, full_name, phone, invite_token, rsvp_responses(status)")
-      .eq("event_id", eventId);
-
+    const { data: guests, error } = await supabase.from("guests").select("*").eq("event_id", eventId);
     if (error) throw error;
+    const list = guests || [];
+    const guestIds = list.map((g) => g.id);
 
-    const pendingGuests = guests.filter((guest) => !guest.rsvp_responses || guest.rsvp_responses.length === 0);
+    const responded = new Set();
+    if (guestIds.length) {
+      const r1 = await supabase.from("responses").select("guest_id").in("guest_id", guestIds);
+      if (!r1.error) (r1.data || []).forEach((r) => responded.add(r.guest_id));
+      const r2 = await supabase.from("rsvp_responses").select("guest_id").in("guest_id", guestIds);
+      if (!r2.error) (r2.data || []).forEach((r) => responded.add(r.guest_id));
+    }
 
-    const results = await Promise.allSettled(
-      pendingGuests.map((guest) =>
-        sendMessageToGuest({
-          phone: guest.phone,
-          channel,
-          body: `${reminderText || "נשמח לאישור הגעה בהקדם"}\n${baseUrl}/rsvp/${guest.invite_token}`
-        })
-      )
+    const pendingGuests = list.filter((g) => !responded.has(g.id));
+
+    const perGuest = await Promise.all(
+      pendingGuests.map(async (guest) => {
+        const g = normalizeGuestRow(guest);
+        try {
+          if (!g.invite_token) throw new Error("לא נמצא טוקן אישי לאורח.");
+          if (!isLikelyE164(guest.phone)) {
+            return { ok: false, skipped: true, error: "מספר טלפון לא תקין" };
+          }
+          await sendMessageToGuest({
+            phone: guest.phone,
+            channel,
+            body: `${reminderText || "נשמח לאישור הגעה בהקדם"}\n${baseUrl}/rsvp/${g.invite_token}`
+          });
+          return { ok: true };
+        } catch (err) {
+          return { ok: false, error: formatTwilioErr(err) || err?.message };
+        }
+      })
     );
 
-    const failed = results.filter((item) => item.status === "rejected").length;
-    res.json({ reminded: results.length - failed, failed });
+    const ok = perGuest.filter((r) => r.ok).length;
+    const fail = perGuest.filter((r) => !r.ok && !r.skipped).length;
+    const skip = perGuest.filter((r) => r.skipped).length;
+    res.json({ reminded: ok, failed: fail, skipped: skip });
   } catch (error) {
     console.error("Send reminders failed:", error);
     res.status(500).json({ error: "שליחת תזכורות נכשלה." });

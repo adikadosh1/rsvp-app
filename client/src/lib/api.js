@@ -1,7 +1,12 @@
 const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export async function apiFetch(path, options = {}) {
-  const response = await fetch(`${apiBase}${path}`, options);
+  const { clearToken, getToken } = await import("./auth.js");
+  const token = getToken();
+  const headers = new Headers(options.headers || {});
+  if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
+
+  const response = await fetch(`${apiBase}${path}`, { ...options, headers });
   let data = null;
 
   try {
@@ -11,8 +16,15 @@ export async function apiFetch(path, options = {}) {
   }
 
   if (!response.ok) {
-    const errorMessage = data?.error || "אירעה שגיאה בבקשה לשרת.";
-    throw new Error(errorMessage);
+    if (response.status === 401 && path !== "/admin/login") {
+      clearToken();
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+    const base = data?.error || "אירעה שגיאה בבקשה לשרת.";
+    const details = data?.details ? ` (${data.details})` : "";
+    throw new Error(`${base}${details}`);
   }
 
   return data;

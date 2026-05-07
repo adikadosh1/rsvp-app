@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import SendMessage from "../components/SendMessage.jsx";
 import { apiFetch } from "../lib/api.js";
 import Papa from "papaparse";
+import { useToast } from "../components/ToastProvider.jsx";
 
 export default function UploadGuests() {
   const { eventId } = useParams();
+  const toast = useToast();
   const [csvFile, setCsvFile] = useState(null);
   const [previewGuests, setPreviewGuests] = useState([]);
   const [resultText, setResultText] = useState("");
@@ -13,8 +15,18 @@ export default function UploadGuests() {
   const [isDragging, setIsDragging] = useState(false);
   const [importMode, setImportMode] = useState(null); // add | replace
   const [needsChoice, setNeedsChoice] = useState(false);
+  const [dupInFile, setDupInFile] = useState(0);
+  const [invalidPhones, setInvalidPhones] = useState(null);
+  const [invalidLoading, setInvalidLoading] = useState(false);
 
   const storageKey = `hkham-upload-preview:${eventId}`;
+
+  function detectDelimiter(firstLine) {
+    const line = String(firstLine || "").replace(/^\uFEFF/, "");
+    const commas = (line.match(/,/g) || []).length;
+    const semis = (line.match(/;/g) || []).length;
+    return semis > commas ? ";" : ",";
+  }
 
   const clearList = () => {
     setCsvFile(null);
@@ -22,6 +34,7 @@ export default function UploadGuests() {
     setResultText("");
     setImportMode(null);
     setNeedsChoice(false);
+    setDupInFile(0);
     try {
       localStorage.removeItem(storageKey);
     } catch (_e) {
@@ -40,6 +53,7 @@ export default function UploadGuests() {
         setResultText(parsed.resultText || "");
         setImportMode(parsed.importMode || null);
         setNeedsChoice(Boolean(parsed.needsChoice));
+        setDupInFile(Number(parsed.dupInFile) || 0);
       }
     } catch (_e) {
       // ignore
@@ -58,10 +72,16 @@ export default function UploadGuests() {
     return new TextDecoder("windows-1255", { fatal: false }).decode(bytes);
   };
 
-  const parseCsvText = async (text) => {
-    const parsed = Papa.parse(text, {
+  const parseCsvText = (text) => {
+    const withoutBom = String(text || "").replace(/^\uFEFF/, "");
+    const firstNl = withoutBom.indexOf("\n");
+    const firstLine = firstNl >= 0 ? withoutBom.slice(0, firstNl) : withoutBom;
+    const delimiter = detectDelimiter(firstLine);
+
+    const parsed = Papa.parse(withoutBom, {
       header: true,
       skipEmptyLines: true,
+      delimiter,
       transformHeader: (h) => String(h || "").trim(),
       transform: (v) => (typeof v === "string" ? v.trim() : v)
     });
@@ -79,7 +99,13 @@ export default function UploadGuests() {
       })
       .filter((g) => g.name && g.phone);
 
-    return guests;
+    const seen = new Set();
+    let dups = 0;
+    for (const g of guests) {
+      if (seen.has(g.phone)) dups += 1;
+      seen.add(g.phone);
+    }
+    return { guests, dupInFile: dups };
   };
 
   const loadPreviewFromFile = async (file) => {
@@ -89,9 +115,11 @@ export default function UploadGuests() {
     setImportMode(null);
     setNeedsChoice(false);
     const text = await decodeCsvFile(file);
-    const guests = await parseCsvText(text);
+    const { guests, dupInFile: dupCount } = parseCsvText(text);
+    setDupInFile(dupCount);
     setPreviewGuests(guests.slice(0, 500)); // safety cap for preview
     const baseMsg = guests.length ? `נטענו ${guests.length} אורחים לתצוגה לפני אישור.` : "לא נמצאו שורות תקינות.";
+    const dupMsg = dupCount > 0 ? ` זוהו ${dupCount} כפילויות טלפון בקובץ (תוצג השורה הראשונה לכל מספר).` : "";
 
     // Decide whether we must ask replace/add (only if event already has guests)
     let nextNeedsChoice = false;
@@ -115,8 +143,8 @@ export default function UploadGuests() {
     setImportMode(nextMode);
     setResultText(
       nextNeedsChoice
-        ? `${baseMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
-        : baseMsg
+        ? `${baseMsg}${dupMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
+        : `${baseMsg}${dupMsg}`
     );
 
     try {
@@ -126,10 +154,11 @@ export default function UploadGuests() {
           previewGuests: guests.slice(0, 500),
           resultText:
             nextNeedsChoice
-              ? `${baseMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
-              : baseMsg,
+              ? `${baseMsg}${dupMsg} לאירוע כבר קיימים אורחים — בחר האם להחליף או להוסיף.`
+              : `${baseMsg}${dupMsg}`,
           importMode: nextMode,
-          needsChoice: nextNeedsChoice
+          needsChoice: nextNeedsChoice,
+          dupInFile: dupCount
         })
       );
     } catch (_e) {
@@ -159,24 +188,91 @@ export default function UploadGuests() {
         method: "POST",
         body: form
       });
+      const skipped = typeof data.skipped === "number" ? data.skipped : 0;
       if (data.count === 0) {
-        setResultText(`לא נוספו אורחים (ייתכן שכולם כבר קיימים).`);
+        setResultText(
+          skipped > 0
+            ? `לא נוספו רשומות חדשות. דולגו ${skipped} מספרים שכבר קיימים באירוע.`
+            : "לא נוספו אורחים."
+        );
       } else {
-        setResultText(`הועלו ${data.count} אורחים בהצלחה.`);
+        setResultText(
+          skipped > 0
+            ? `נשמרו בהצלחה ${data.count} אורחים. דולגו ${skipped} כפילויות מול הרשימה הקיימת.`
+            : `נשמרו בהצלחה ${data.count} אורחים.`
+        );
       }
       clearList();
+      toast.push({
+        tone: "success",
+        title: "אורחים נשמרו",
+        message: `נוספו ${data.count || 0} | דולגו ${data.skipped || 0}`
+      });
     } catch (error) {
       setResultText(error.message);
+      toast.push({ tone: "danger", title: "שמירת אורחים נכשלה", message: error.message });
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchInvalidPhones = async () => {
+    try {
+      setInvalidLoading(true);
+      const data = await apiFetch(`/guests/${eventId}/invalid-phones?limit=200`);
+      setInvalidPhones(data);
+      toast.push({ tone: "info", title: "בדיקה הושלמה", message: `נמצאו ${data.invalidCount || 0} טלפונים בעייתיים` });
+    } catch (e) {
+      toast.push({ tone: "warning", title: "בדיקה נכשלה", message: e.message });
+    } finally {
+      setInvalidLoading(false);
+    }
+  };
+
+  const fixPhones = async () => {
+    try {
+      setInvalidLoading(true);
+      const data = await apiFetch(`/guests/${eventId}/fix-phones`, { method: "POST" });
+      toast.push({
+        tone: "success",
+        title: "תיקון טלפונים הושלם",
+        message: `תוקנו ${data.updated || 0} | דולגו ${data.skipped || 0}`
+      });
+      await fetchInvalidPhones();
+    } catch (e) {
+      toast.push({ tone: "danger", title: "תיקון נכשל", message: e.message });
+    } finally {
+      setInvalidLoading(false);
+    }
+  };
+
+  const downloadInvalidCsv = () => {
+    const rows = invalidPhones?.invalid || [];
+    const header = "name,phone";
+    const csv = [header, ...rows.map((r) => `${JSON.stringify(r.name || "")},${JSON.stringify(r.phone || "")}`)].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "invalid-phones.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
   return (
     <div className="grid">
+      <nav className="breadcrumb" aria-label="מיקום">
+        <Link to="/dashboard">מסך ראשי</Link>
+        <span className="sep">/</span>
+        <Link to={`/events/${eventId}`}>דשבורד אירוע</Link>
+        <span className="sep">/</span>
+        <span>העלאת אורחים</span>
+      </nav>
       <section className="card">
         <h2>העלאת אורחים (CSV)</h2>
-        <p className="hint">בחר קובץ CSV או גרור אותו לכאן. העמודות יכולות להיות: name,phone או שם,טלפון</p>
+        <p className="banner banner-info">התצוגה המקדימה נשמרת בדפדפן (טיוטה) עד שמירה או “נקה רשימה”.</p>
+        <p className="hint">בחר קובץ CSV או גרור אותו לכאן. העמודות יכולות להיות: name,phone או שם,טלפון (גם מפריד `;` וקידוד Windows-1255)</p>
 
         <div className="actions" style={{ marginBottom: 10 }}>
           <button type="button" className="btn" onClick={clearList} disabled={loading && previewGuests.length === 0 && !csvFile}>
@@ -232,6 +328,11 @@ export default function UploadGuests() {
         {previewGuests.length > 0 && (
           <div className="preview-box">
             <h3>תצוגה לפני אישור ({previewGuests.length} שורות)</h3>
+            {dupInFile > 0 && (
+              <p className="hint" role="status">
+                זוהו {dupInFile} מופעים כפולים של אותו טלפון בקובץ — בעת השמירה יישמר רק המופע הראשון לכל מספר.
+              </p>
+            )}
             <div className="table-wrapper">
               <table>
                 <thead>
@@ -281,6 +382,32 @@ export default function UploadGuests() {
           </div>
         )}
         {resultText && <p className="status">{resultText}</p>}
+        <div className="actions" style={{ marginTop: 12 }}>
+          <Link className="btn" to={`/events/${eventId}`}>
+            מעבר לדשבורד האירוע
+          </Link>
+        </div>
+      </section>
+
+      <section className="card">
+        <h3>בדיקת טלפונים</h3>
+        <p className="hint">מוצא מספרים שאינם בפורמט בינלאומי, ומאפשר תיקון אוטומטי.</p>
+        <div className="actions">
+          <button className="btn" type="button" onClick={fetchInvalidPhones} disabled={invalidLoading}>
+            {invalidLoading ? "בודק..." : "בדוק טלפונים בעייתיים"}
+          </button>
+          <button className="btn" type="button" onClick={fixPhones} disabled={invalidLoading}>
+            תקן אוטומטית
+          </button>
+          <button className="btn btn-gold" type="button" onClick={downloadInvalidCsv} disabled={!invalidPhones?.invalid?.length}>
+            הורד CSV
+          </button>
+        </div>
+        {invalidPhones && (
+          <p className="hint" style={{ marginTop: 10 }}>
+            נמצאו <strong>{invalidPhones.invalidCount}</strong> טלפונים בעייתיים מתוך {invalidPhones.totalChecked}.
+          </p>
+        )}
       </section>
 
       <SendMessage eventId={eventId} onSent={() => setResultText("שליחת הזמנות הושלמה.")} />

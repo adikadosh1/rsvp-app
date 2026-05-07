@@ -8,6 +8,7 @@ create table if not exists public.events (
   maps_url text,
   parking_info text,
   contact_phone text,
+  owner_token uuid unique,
   message_template text,
   invitation_image_url text,
   default_channel text default 'sms' check (default_channel in ('sms', 'whatsapp')),
@@ -49,6 +50,7 @@ create table if not exists public.message_logs (
 create index if not exists idx_guests_event_id on public.guests(event_id);
 create index if not exists idx_rsvp_event_id on public.rsvp_responses(event_id);
 create index if not exists idx_message_logs_event_id on public.message_logs(event_id);
+create index if not exists idx_events_owner_token on public.events(owner_token);
 
 create or replace function public.set_updated_at()
 returns trigger
