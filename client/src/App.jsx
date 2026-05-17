@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import AdminShell from "./components/AdminShell.jsx";
 import BackButton from "./components/BackButton.jsx";
+import PageFade from "./components/PageFade.jsx";
 
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.jsx"));
@@ -17,6 +18,34 @@ const About = lazy(() => import("./pages/About.jsx"));
 const Services = lazy(() => import("./pages/Services.jsx"));
 const Pricing = lazy(() => import("./pages/Pricing.jsx"));
 const Contact = lazy(() => import("./pages/Contact.jsx"));
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <PageFade key={location.pathname}>
+      <Routes location={location}>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<AdminLogin />} />
+        <Route path="/start" element={<StartOwner />} />
+        <Route path="/owner/:ownerToken" element={<OwnerPortal />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+
+        <Route element={<AdminShell />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/events/:eventId" element={<EventDashboard />} />
+          <Route path="/manage/:eventId" element={<UploadGuests />} />
+        </Route>
+
+        <Route path="/rsvp/:token" element={<RSVPPage />} />
+      </Routes>
+    </PageFade>
+  );
+}
 
 export default function App() {
   useEffect(() => {
@@ -49,26 +78,7 @@ export default function App() {
           </div>
         }
       >
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<AdminLogin />} />
-          <Route path="/start" element={<StartOwner />} />
-          <Route path="/owner/:ownerToken" element={<OwnerPortal />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-
-          <Route element={<AdminShell />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/events/:eventId" element={<EventDashboard />} />
-            <Route path="/manage/:eventId" element={<UploadGuests />} />
-          </Route>
-
-          <Route path="/rsvp/:token" element={<RSVPPage />} />
-        </Routes>
+        <AnimatedRoutes />
       </Suspense>
     </div>
   );

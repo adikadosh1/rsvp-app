@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { clearToken } from "../lib/auth.js";
 import { apiFetch } from "../lib/api.js";
+import DarkModeToggle from "./DarkModeToggle.jsx";
 
 function BrandMark() {
   return <img className="logo-mark" src="/brand/logo-mark.svg" alt="" aria-hidden="true" />;
@@ -114,7 +115,8 @@ export default function AdminShell() {
           </>
         )}
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ display: "grid", gap: 10 }}>
+          <DarkModeToggle />
           <button
             type="button"
             className="btn btn-ghost"

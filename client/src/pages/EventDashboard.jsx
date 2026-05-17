@@ -3,12 +3,16 @@ import { Link, useParams } from "react-router-dom";
 import GuestTable from "../components/GuestTable.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
 import { RSVPDonut, ResponsesByHour, RecentResponses } from "../components/DashboardCharts.jsx";
+import CountdownTimer from "../components/CountdownTimer.jsx";
+import { useToast } from "../components/ToastProvider.jsx";
 import { apiFetch } from "../lib/api.js";
 import { getBrowserSupabase } from "../lib/supabaseBrowser.js";
 import { statusLabel } from "../utils/rsvpDisplay.js";
 
 export default function EventDashboard() {
   const { eventId } = useParams();
+  const toast = useToast();
+  const prevAnsweredRef = useRef(0);
   const [event, setEvent] = useState(null);
   const [guests, setGuests] = useState([]);
   const guestIdSetRef = useRef(new Set());
@@ -130,18 +134,23 @@ export default function EventDashboard() {
     return { total, arrived, notArrived, uncertain, notAnswered, totalDiners, totalVeg, totalKids };
   }, [guests]);
 
-  const countdown = useMemo(() => {
-    const iso = event?.event_date || event?.date;
-    if (!iso) return null;
-    const t = new Date(iso).getTime();
-    if (!Number.isFinite(t)) return null;
-    const now = Date.now();
-    const diff = Math.max(0, t - now);
-    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-    const mins = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-    return { days, hours, mins, done: diff === 0 };
-  }, [event?.event_date, event?.date]);
+  const responseRate = useMemo(() => {
+    if (!stats.total) return 0;
+    const answered = stats.total - stats.notAnswered;
+    return Math.round((answered / stats.total) * 100);
+  }, [stats]);
+
+  useEffect(() => {
+    const answered = stats.total - stats.notAnswered;
+    if (answered > prevAnsweredRef.current && prevAnsweredRef.current > 0) {
+      toast.push({
+        tone: "success",
+        title: "תשובה חדשה",
+        message: "אורח עדכן את אישור ההגעה בזמן אמת"
+      });
+    }
+    prevAnsweredRef.current = answered;
+  }, [stats.total, stats.notAnswered, toast]);
 
   const responsesByHour = useMemo(() => timeline?.byHour || [], [timeline]);
 
@@ -189,7 +198,7 @@ export default function EventDashboard() {
         label: "סה״כ אורחים",
         value: stats.total,
         max: baseMax,
-        color: "var(--gold-strong)"
+        color: "var(--primary)"
       },
       {
         key: "arrived",
@@ -268,24 +277,15 @@ export default function EventDashboard() {
         <div className="widgets-row">
           <div className="widget">
             <div className="widget-title">ספירה לאחור</div>
-            {countdown ? (
-              <div className="countdown">
-                <div className="cd-box">
-                  <div className="cd-num">{countdown.days}</div>
-                  <div className="cd-lbl">ימים</div>
-                </div>
-                <div className="cd-box">
-                  <div className="cd-num">{countdown.hours}</div>
-                  <div className="cd-lbl">שעות</div>
-                </div>
-                <div className="cd-box">
-                  <div className="cd-num">{countdown.mins}</div>
-                  <div className="cd-lbl">דקות</div>
-                </div>
+            <CountdownTimer eventDate={event?.event_date || event?.date} />
+            <div style={{ marginTop: 16 }}>
+              <p className="hint" style={{ marginBottom: 6 }}>
+                אחוז מענה: <strong>{responseRate}%</strong>
+              </p>
+              <div className="progress-bar" aria-hidden="true">
+                <div className="progress-bar-fill" style={{ width: `${responseRate}%` }} />
               </div>
-            ) : (
-              <div className="hint">אין תאריך אירוע מוגדר</div>
-            )}
+            </div>
           </div>
 
           <div className="widget">
@@ -381,7 +381,7 @@ export default function EventDashboard() {
           <div className="skeleton" style={{ height: 180 }} />
         </section>
       ) : (
-        <GuestTable guests={filteredGuests} />
+        <GuestTable guests={filteredGuests} eventId={eventId} />
       )}
     </div>
   );

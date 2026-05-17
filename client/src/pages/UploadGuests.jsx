@@ -386,7 +386,7 @@ export default function UploadGuests() {
         </div>
 
         <div
-          className={`dropzone ${isDragging ? "dragging" : ""}`}
+          className={`dropzone dropzone-pro ${isDragging ? "dragging" : ""}`}
           onDragEnter={(e) => {
             e.preventDefault();
             e.stopPropagation();

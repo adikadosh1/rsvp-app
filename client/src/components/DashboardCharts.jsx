@@ -11,12 +11,12 @@ import {
 } from "recharts";
 
 const palette = {
-  coral: "#FF6B7A",
-  primary: "#6F4CFF",
+  coral: "#5B2D8E",
+  primary: "#5B2D8E",
   ok: "#22c55e",
   danger: "#ef4444",
-  accent: "#3BA7FF",
-  uncertain: "#FF8F9A",
+  accent: "#4A90D9",
+  uncertain: "#6C3FC5",
   muted: "#ECEEF5"
 };
 

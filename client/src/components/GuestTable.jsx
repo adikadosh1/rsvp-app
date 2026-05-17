@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
+import { Bell, Pencil } from "lucide-react";
+import { apiFetch } from "../lib/api.js";
+import { useToast } from "./ToastProvider.jsx";
+import EmptyState from "./EmptyState.jsx";
 import { responseMealColumns, statusLabel } from "../utils/rsvpDisplay.js";
+
+const PAGE_SIZE = 12;
 
 const SORT_KEYS = {
   name: "name",
@@ -10,9 +16,19 @@ const SORT_KEYS = {
   kids: "kids"
 };
 
-export default function GuestTable({ guests }) {
+function badgeClass(stat) {
+  if (stat === "מגיע") return "badge badge-ok";
+  if (stat === "לא מגיע") return "badge badge-danger";
+  if (stat === "לא יודע") return "badge badge-warn";
+  return "badge badge-muted";
+}
+
+export default function GuestTable({ guests, eventId }) {
+  const toast = useToast();
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
+  const [page, setPage] = useState(1);
+  const [sendingId, setSendingId] = useState(null);
 
   const toggleSort = (key) => {
     setSortKey((prev) => {
@@ -57,6 +73,30 @@ export default function GuestTable({ guests }) {
     return rows;
   }, [guests, sortDir, sortKey]);
 
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const sendReminder = async (guest) => {
+    if (!eventId || !guest?.invite_token) return;
+    try {
+      setSendingId(guest.id);
+      await apiFetch(`/events/${eventId}/send-reminders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel: "sms", reminderText: `שלום ${guest.full_name}, נשמח לאישור הגעה` })
+      });
+      toast.push({
+        tone: "success",
+        title: "תזכורות נשלחו",
+        message: "נשלחו תזכורות לכל מי שטרם ענה לאירוע"
+      });
+    } catch (e) {
+      toast.push({ tone: "danger", title: "שליחה נכשלה", message: e.message });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
   const headerBtn = (label, key) => (
     <th scope="col">
       <button type="button" className="th-sort" onClick={() => toggleSort(key)}>
@@ -70,7 +110,7 @@ export default function GuestTable({ guests }) {
     return (
       <section className="card">
         <h3>טבלת אורחים ותשובות בזמן אמת</h3>
-        <div className="empty-state">אין עדיין אורחים להצגה. העלה קובץ CSV או רענן.</div>
+        <EmptyState title="אין אורחים עדיין" description="העלו קובץ CSV או ייבאו מאנשי קשר כדי להתחיל." />
       </section>
     );
   }
@@ -79,7 +119,7 @@ export default function GuestTable({ guests }) {
     <section className="card">
       <h3>טבלת אורחים ותשובות בזמן אמת</h3>
       <div className="table-wrapper">
-        <table>
+        <table className="table-pro">
           <thead>
             <tr>
               {headerBtn("שם", SORT_KEYS.name)}
@@ -88,22 +128,68 @@ export default function GuestTable({ guests }) {
               {headerBtn("כמות מגיעים", SORT_KEYS.attendees)}
               {headerBtn("צמחוני", SORT_KEYS.veg)}
               {headerBtn("מנות ילדים", SORT_KEYS.kids)}
+              <th scope="col">פעולות</th>
             </tr>
           </thead>
           <tbody>
-            {sorted.map(({ guest, meals, stat }) => (
+            {pageRows.map(({ guest, meals, stat }) => (
               <tr key={guest.id}>
                 <td>{guest.full_name}</td>
                 <td>{guest.phone}</td>
-                <td>{stat}</td>
+                <td>
+                  <span className={badgeClass(stat)}>{stat}</span>
+                </td>
                 <td>{meals.attendees}</td>
                 <td>{meals.veg}</td>
                 <td>{meals.kids}</td>
+                <td>
+                  <div className="table-actions">
+                    {stat === "טרם ענה" && eventId ? (
+                      <button
+                        type="button"
+                        className="btn btn-icon btn-accent"
+                        disabled={sendingId === guest.id}
+                        onClick={() => sendReminder(guest)}
+                        title="שלח תזכורת"
+                      >
+                        <Bell size={14} />
+                      </button>
+                    ) : null}
+                    <a className="btn btn-icon" href={`/rsvp/${guest.invite_token}`} target="_blank" rel="noreferrer" title="צפה בדף RSVP">
+                      <Pencil size={14} />
+                    </a>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <nav className="pagination" aria-label="עימוד טבלה">
+          <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            הקודם
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+            .map((n, idx, arr) => {
+              const prev = arr[idx - 1];
+              const gap = prev && n - prev > 1;
+              return (
+                <span key={n} style={{ display: "contents" }}>
+                  {gap ? <span className="hint">…</span> : null}
+                  <button type="button" className={page === n ? "active" : ""} onClick={() => setPage(n)}>
+                    {n}
+                  </button>
+                </span>
+              );
+            })}
+          <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            הבא
+          </button>
+        </nav>
+      )}
     </section>
   );
 }

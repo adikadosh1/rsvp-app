@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Check, HelpCircle, Minus, Plus, X } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
 import { Icon } from "../components/Icons.jsx";
 import BrandHeader from "../components/BrandHeader.jsx";
+import Spinner from "../components/Spinner.jsx";
+import { fireConfetti } from "../lib/confetti.js";
 
 const steps = ["סטטוס הגעה", "כמות מגיעים", "מנות מיוחדות", "סיום"];
 
@@ -156,6 +159,7 @@ export default function RSVPPage() {
         if (first?.message) setNotice(first.message);
       }
       setStep(3);
+      void fireConfetti();
     } catch (error) {
       setNotice(error.message);
     } finally {
@@ -182,13 +186,14 @@ export default function RSVPPage() {
 
   const prev = () => setStep((s) => Math.max(s - 1, 0));
 
+  useEffect(() => {
+    if (step === 3) void fireConfetti();
+  }, [step]);
+
   if (pageLoading) {
     return (
       <div className="rsvp-page container">
-        <section className="card">
-          <div className="skeleton" style={{ height: 22, width: "70%", marginBottom: 12 }} />
-          <div className="skeleton" style={{ height: 160 }} />
-        </section>
+        <Spinner label="טוען את ההזמנה..." />
       </div>
     );
   }
@@ -221,26 +226,31 @@ export default function RSVPPage() {
 
       {/* Invitation image is shown inside the hero (no duplicate card below). */}
 
-      <section className="card">
-        <div className="steps-indicator">
-          {steps.map((label, index) => (
-            <span key={label} className={index === step ? "active" : ""}>
-              {label}
-            </span>
+            <section className="rsvp-card">
+        <div className="rsvp-progress" aria-hidden="true">
+          {steps.map((_, index) => (
+            <span key={index} className={`rsvp-progress-seg ${index <= step ? "done" : ""}`} />
           ))}
         </div>
 
         {step === 0 && (
-          <div className="step-box">
+          <div className="rsvp-step-body step-box">
             <h3>האם תגיעו לאירוע?</h3>
-            <div className="choice-row">
-              {["מגיע", "לא מגיע", "לא יודע"].map((status) => (
+            <div className="rsvp-choice-grid">
+              {[
+                { status: "מגיע", cls: "yes", Icon: Check },
+                { status: "לא מגיע", cls: "no", Icon: X },
+                { status: "לא יודע", cls: "maybe", Icon: HelpCircle }
+              ].map(({ status, cls, Icon: Ic }) => (
                 <button
                   key={status}
                   type="button"
-                  className={`pill ${form.status === status ? "selected" : ""}`}
+                  className={`rsvp-choice-btn ${cls} ${form.status === status ? "selected" : ""}`}
                   onClick={() => setForm((prev) => ({ ...prev, status }))}
                 >
+                  <span className="rsvp-choice-icon">
+                    <Ic size={22} />
+                  </span>
                   {status}
                 </button>
               ))}
@@ -250,35 +260,31 @@ export default function RSVPPage() {
         )}
 
         {step === 1 && (
-          <div className="step-box">
+          <div className="rsvp-step-body step-box">
             <h3>כמה אורחים מגיעים?</h3>
-            <label className="field">
-              <span>כמות מגיעים</span>
-              <input
-                type="number"
-                min="1"
-                max="99"
-                value={form.attendeesCount}
-                onChange={(e) => {
-                  setFieldErrors((p) => ({ ...p, attendeesCount: "" }));
-                  setForm((prev) => ({ ...prev, attendeesCount: Number(e.target.value) || 1 }));
-                }}
-              />
-              <div className="field-help">ניתן להזין גם מעל 10 לפי הצורך.</div>
-              {fieldErrors.attendeesCount ? <div className="field-error">{fieldErrors.attendeesCount}</div> : null}
-            </label>
+            <div className="qty-stepper">
+              <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, attendeesCount: Math.max(1, p.attendeesCount - 1) }))} aria-label="הפחת">
+                <Minus size={22} />
+              </button>
+              <span className="qty-value">{form.attendeesCount}</span>
+              <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, attendeesCount: Math.min(99, p.attendeesCount + 1) }))} aria-label="הוסף">
+                <Plus size={22} />
+              </button>
+            </div>
+            {fieldErrors.attendeesCount ? <div className="field-error">{fieldErrors.attendeesCount}</div> : null}
+            <p className="hint">ניתן לבחור בין 1 ל-99 אורחים.</p>
           </div>
         )}
 
-        {step === 2 && (
-          <div className="step-box">
+                {step === 2 && (
+          <div className="rsvp-step-body step-box">
             <h3>מנות מיוחדות</h3>
             {form.status !== "מגיע" ? (
               <p className="hint">לא נדרשות מנות מיוחדות לפי הסטטוס שבחרת.</p>
             ) : (
-              <>
-                <label className="field">
-                  <span>כמות מנות צמחוניות</span>
+              <div className="meal-cards">
+                <div className="meal-card">
+                  <span className="meal-card-label">מנות צמחוניות</span>
                   <input
                     type="number"
                     min="0"
@@ -291,10 +297,9 @@ export default function RSVPPage() {
                       }))
                     }
                   />
-                  <div className="field-help">עד {maxMealCount} (לפי כמות המגיעים).</div>
-                </label>
-                <label className="field">
-                  <span>כמות מנות ילדים</span>
+                </div>
+                <div className="meal-card">
+                  <span className="meal-card-label">מנות ילדים</span>
                   <input
                     type="number"
                     min="0"
@@ -307,37 +312,39 @@ export default function RSVPPage() {
                       }))
                     }
                   />
-                  <div className="field-help">עד {maxMealCount} (לפי כמות המגיעים).</div>
-                </label>
-              </>
+                </div>
+              </div>
             )}
+            <p className="hint" style={{ marginTop: 12 }}>עד {maxMealCount} מנות לפי כמות המגיעים.</p>
           </div>
         )}
 
         {step === 3 && (
-          <div className="step-box success-box success-hero">
-            <div className="success-badge">אישור נשמר</div>
-            <h3 className="success-title">תודה! תשובתכם נשמרה בהצלחה</h3>
-            <p className="hint">אפשר להוסיף ליומן או לפתוח ניווט. נתראה בשמחות.</p>
-            <div className="actions">
-              <a
-                className="btn btn-gold"
-                href={googleCalendarUrl(eventTitle(ev), ev?.event_date ?? ev?.date)}
-                target="_blank"
-                rel="noreferrer"
-              >
+          <div className="rsvp-step-body rsvp-success success-box">
+            <div className="rsvp-success-check">
+              <Check size={36} strokeWidth={3} />
+            </div>
+            <h3 className="success-title">תודה! תשובתכם נשמרה</h3>
+            <p className="hint">נתראה בשמחות — אפשר להוסיף ליומן או לנווט לאולם.</p>
+            <div className="rsvp-gadgets">
+              <a className="btn btn-gold" href={googleCalendarUrl(eventTitle(ev), ev?.event_date ?? ev?.date)} target="_blank" rel="noreferrer">
                 הוסף ליומן
               </a>
               {mapLinks?.google && (
                 <a className="btn btn-accent" href={mapLinks.google} target="_blank" rel="noreferrer">
-                  נווט לאירוע
+                  Google Maps
+                </a>
+              )}
+              {mapLinks?.waze && (
+                <a className="btn" href={mapLinks.waze} target="_blank" rel="noreferrer">
+                  Waze
                 </a>
               )}
             </div>
           </div>
         )}
 
-        <div className="actions">
+        <div className="rsvp-footer-actions">
           {step > 0 && step < 3 && (
             <button className="btn" type="button" onClick={prev} disabled={loading}>
               חזרה

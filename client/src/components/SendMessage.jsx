@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { apiBase, apiFetch } from "../lib/api.js";
+import { useEffect, useMemo, useState } from "react";
+import { MessageCircle, Smartphone } from "lucide-react";
+import { apiFetch } from "../lib/api.js";
 import { useToast } from "./ToastProvider.jsx";
 
 export default function SendMessage({ eventId, onSent }) {
@@ -88,6 +89,15 @@ export default function SendMessage({ eventId, onSent }) {
     }
   };
 
+  const previewText = useMemo(() => {
+    return messageTemplate
+      .replace(/\{\{שם\}\}/g, "ישראל ישראלי")
+      .replace(/\{\{אירוע\}\}/g, "החתונה שלנו")
+      .replace(/\{\{לינק\}\}/g, "https://rsvp.example/abc");
+  }, [messageTemplate]);
+
+  const previewUrl = imageFile ? URL.createObjectURL(imageFile) : invitationImageUrl || "";
+
   return (
     <section className="card">
       <h3>שליחת הודעות</h3>
@@ -109,13 +119,28 @@ export default function SendMessage({ eventId, onSent }) {
         </div>
       )}
 
-      <label className="field">
-        <span>ערוץ שליחה</span>
-        <select value={channel} onChange={(e) => setChannel(e.target.value)}>
-          <option value="sms">SMS</option>
-          <option value="whatsapp">WhatsApp</option>
-        </select>
-      </label>
+      <span className="field-help" style={{ display: "block", marginBottom: 8 }}>
+        ערוץ שליחה
+      </span>
+      <div className="channel-picker">
+        <button
+          type="button"
+          className={`channel-option ${channel === "sms" ? "selected" : ""}`}
+          onClick={() => setChannel("sms")}
+        >
+          <Smartphone size={28} />
+          <span>SMS</span>
+        </button>
+        <button
+          type="button"
+          className={`channel-option whatsapp ${channel === "whatsapp" ? "selected" : ""}`}
+          onClick={() => setChannel("whatsapp")}
+        >
+          <MessageCircle size={28} />
+          <span>WhatsApp</span>
+        </button>
+      </div>
+
       <label className="field">
         <span>נוסח הודעה</span>
         <textarea
@@ -125,11 +150,24 @@ export default function SendMessage({ eventId, onSent }) {
           placeholder="אפשר להשתמש ב-{{שם}}, {{לינק}}, {{אירוע}}"
         />
       </label>
+
+      <div className="chat-preview-wrap">
+        <div className="chat-preview-label">תצוגה מקדימה</div>
+        <div className="chat-bubble">
+          {previewText}
+          {previewUrl ? (
+            <div className="chat-bubble-image">
+              <img src={previewUrl} alt="" />
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       <label className="field">
         <span>תמונת הזמנה (אופציונלי)</span>
         <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
       </label>
-      <button type="button" className="btn btn-gold" onClick={saveAndSend} disabled={loading}>
+      <button type="button" className="btn btn-gold" style={{ width: "100%", marginTop: 8 }} onClick={saveAndSend} disabled={loading}>
         {loading ? "מבצע שליחה..." : "שמור ושלח לכל האורחים"}
       </button>
       {statusText && <p className="status">{statusText}</p>}
