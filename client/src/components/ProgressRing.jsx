@@ -3,8 +3,8 @@ export default function ProgressRing({
   max,
   size = 56,
   stroke = 6,
-  color = "var(--gold-strong)",
-  trackColor = "rgba(255,255,255,0.10)",
+  color = "var(--primary)",
+  trackColor = "var(--border)",
   label
 }) {
   const safeMax = Math.max(1, Number(max || 1));

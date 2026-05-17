@@ -3,21 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { clearToken } from "../lib/auth.js";
 import { apiFetch } from "../lib/api.js";
 
-function CrownMark() {
-  return (
-    <svg className="logo-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path
-        d="M10 46h44v6H10v-6Zm4-24 10 12 8-14 8 14 10-12 6 18H8l6-18Z"
-        fill="currentColor"
-        opacity="0.95"
-      />
-      <path
-        d="M16 16a4 4 0 1 0 0.001 0ZM32 10a4 4 0 1 0 0.001 0ZM48 16a4 4 0 1 0 0.001 0Z"
-        fill="currentColor"
-        opacity="0.55"
-      />
-    </svg>
-  );
+function BrandMark() {
+  return <img className="logo-mark" src="/brand/logo-mark.svg" alt="" aria-hidden="true" />;
 }
 
 function NavItem({ to, icon, label }) {
@@ -79,7 +66,7 @@ export default function AdminShell() {
           <span className="menu-ic" aria-hidden="true" />
         </button>
         <Link className="topbar-brand" to="/dashboard" aria-label="מעבר לדשבורד">
-          <CrownMark />
+          <BrandMark />
           <span className="topbar-title">הושבה כיד המלך</span>
         </Link>
       </header>
@@ -90,7 +77,7 @@ export default function AdminShell() {
         <div className="logo">
           <div className="logo-eyebrow">RSVP PREMIUM</div>
           <div className="logo-row">
-            <CrownMark />
+            <BrandMark />
             <div className="logo-text">
               הושבה <span>כיד המלך</span>
             </div>

@@ -99,7 +99,12 @@ export default function SendMessage({ eventId, onSent }) {
           {preflight.missingToken > 0 && <div>חסר טוקן אישי: {preflight.missingToken}</div>}
           {!preflight.hasMessageTemplate && <div>נדרש לשמור נוסח הודעה לפני שליחה.</div>}
           {!preflight.publicAppUrlSet && <div>שים לב: חסר PUBLIC_APP_URL בשרת — הלינקים בהודעה עלולים להיות שגויים.</div>}
-          {channel === "sms" && !preflight.twilioSmsFromSet && <div>חסר TWILIO_SMS_FROM בסביבת השרת.</div>}
+          {channel === "sms" && !preflight.twilioSmsFromSet && (
+            <div>
+              חסר שולח SMS בשרת: הגדרו <code>TWILIO_SMS_FROM</code> (מספר Twilio ל-SMS) או <code>TWILIO_MESSAGING_SERVICE_SID</code>. מספר Sandbox של
+              WhatsApp לא שולח SMS רגיל.
+            </div>
+          )}
           {channel === "whatsapp" && !preflight.twilioWhatsappFromSet && <div>חסר TWILIO_WHATSAPP_FROM בסביבת השרת.</div>}
         </div>
       )}

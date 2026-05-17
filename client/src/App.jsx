@@ -18,23 +18,6 @@ const Services = lazy(() => import("./pages/Services.jsx"));
 const Pricing = lazy(() => import("./pages/Pricing.jsx"));
 const Contact = lazy(() => import("./pages/Contact.jsx"));
 
-function CrownMark() {
-  return (
-    <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path
-        d="M10 46h44v6H10v-6Zm4-24 10 12 8-14 8 14 10-12 6 18H8l6-18Z"
-        fill="currentColor"
-        opacity="0.95"
-      />
-      <path
-        d="M16 16a4 4 0 1 0 0.001 0ZM32 10a4 4 0 1 0 0.001 0ZM48 16a4 4 0 1 0 0.001 0Z"
-        fill="currentColor"
-        opacity="0.55"
-      />
-    </svg>
-  );
-}
-
 export default function App() {
   useEffect(() => {
     let raf = null;

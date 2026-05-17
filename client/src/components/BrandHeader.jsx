@@ -1,23 +1,14 @@
 import { Link } from "react-router-dom";
 
-function CrownMark() {
-  return (
-    <svg className="brand-mini-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path d="M10 46h44v6H10v-6Zm4-24 10 12 8-14 8 14 10-12 6 18H8l6-18Z" fill="currentColor" opacity="0.95" />
-      <path
-        d="M16 16a4 4 0 1 0 0.001 0ZM32 10a4 4 0 1 0 0.001 0ZM48 16a4 4 0 1 0 0.001 0Z"
-        fill="currentColor"
-        opacity="0.55"
-      />
-    </svg>
-  );
+function BrandMark() {
+  return <img className="brand-mini-mark" src="/brand/logo-mark.svg" alt="" aria-hidden="true" />;
 }
 
 export default function BrandHeader({ rightSlot = null }) {
   return (
     <header className="brand-mini" role="banner">
       <Link className="brand-mini-left" to="/" aria-label="מעבר לדף הבית">
-        <CrownMark />
+        <BrandMark />
         <div className="brand-mini-text">
           <div className="brand-mini-eyebrow">RSVP PREMIUM</div>
           <div className="brand-mini-name">

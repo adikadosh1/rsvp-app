@@ -108,7 +108,9 @@ export default function OwnerPortal() {
     if (!event?.event_date) missing.push("תאריך ושעה");
     if ((preflight?.guestCount || 0) === 0) missing.push("רשימת מוזמנים (CSV)");
     if (!messageTemplate?.trim()) missing.push("נוסח הודעה");
-    if (channel === "sms" && preflight && !preflight.twilioSmsFromSet) missing.push("TWILIO_SMS_FROM בשרת");
+    if (channel === "sms" && preflight && !preflight.twilioSmsFromSet) {
+      missing.push("שולח SMS בשרת: TWILIO_SMS_FROM או TWILIO_MESSAGING_SERVICE_SID");
+    }
     if (channel === "whatsapp" && preflight && !preflight.twilioWhatsappFromSet) missing.push("TWILIO_WHATSAPP_FROM בשרת");
     if (preflight && !preflight.publicAppUrlSet) missing.push("PUBLIC_APP_URL בשרת");
     return {
@@ -780,7 +782,11 @@ export default function OwnerPortal() {
             {preflight && (
               <div className="banner banner-info" role="status">
                 <div>אורחים באירוע: {preflight.guestCount}</div>
-                {channel === "sms" && !preflight.twilioSmsFromSet && <div>חסר TWILIO_SMS_FROM בסביבת השרת.</div>}
+                {channel === "sms" && !preflight.twilioSmsFromSet && (
+                  <div>
+                    חסר שולח SMS בשרת: <code>TWILIO_SMS_FROM</code> או <code>TWILIO_MESSAGING_SERVICE_SID</code>. מספר Sandbox של WhatsApp אינו שולח SMS.
+                  </div>
+                )}
                 {channel === "whatsapp" && !preflight.twilioWhatsappFromSet && <div>חסר TWILIO_WHATSAPP_FROM בסביבת השרת.</div>}
                 {preflight.sandboxHint && <div className="hint">{preflight.sandboxHint}</div>}
               </div>

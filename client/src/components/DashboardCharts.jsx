@@ -11,11 +11,12 @@ import {
 } from "recharts";
 
 const palette = {
-  gold: "#f2d38a",
-  ok: "#42d392",
-  danger: "#ff5c7a",
-  accent: "#ffd98e",
-  muted: "rgba(255,255,255,0.18)"
+  primary: "#6F4CFF",
+  ok: "#22c55e",
+  danger: "#ef4444",
+  accent: "#3BA7FF",
+  uncertain: "#5A35F2",
+  muted: "#ECEEF5"
 };
 
 function CustomTooltip({ active, payload, label }) {
@@ -34,7 +35,7 @@ export function RSVPDonut({ stats }) {
     { name: "מגיעים", value: stats.arrived, color: palette.ok },
     { name: "לא מגיעים", value: stats.notArrived, color: palette.danger },
     { name: "לא ענו", value: stats.notAnswered, color: palette.accent },
-    { name: "לא יודעים", value: stats.uncertain, color: palette.gold }
+    { name: "לא יודעים", value: stats.uncertain, color: palette.uncertain }
   ].filter((d) => d.value > 0);
 
   return (
@@ -54,7 +55,7 @@ export function RSVPDonut({ stats }) {
               innerRadius={68}
               outerRadius={92}
               paddingAngle={3}
-              stroke="rgba(255,255,255,0.06)"
+              stroke="#ECEEF5"
               strokeWidth={2}
             >
               {(data.length ? data : [{ color: palette.muted }]).map((entry, index) => (
@@ -69,7 +70,7 @@ export function RSVPDonut({ stats }) {
             ["מגיעים", stats.arrived, palette.ok],
             ["לא מגיעים", stats.notArrived, palette.danger],
             ["לא ענו", stats.notAnswered, palette.accent],
-            ["לא יודעים", stats.uncertain, palette.gold]
+            ["לא יודעים", stats.uncertain, palette.uncertain]
           ].map(([label, val, color]) => (
             <div key={label} className="legend-item">
               <span className="legend-dot" style={{ background: color }} />
@@ -96,10 +97,10 @@ export function ResponsesByHour({ items }) {
       <div className="chart-body">
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={items} margin={{ top: 6, right: 10, left: 0, bottom: 0 }}>
-            <XAxis dataKey="hourLabel" tick={{ fill: "rgba(247,247,251,0.55)", fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fill: "rgba(247,247,251,0.55)", fontSize: 11 }} />
+            <XAxis dataKey="hourLabel" tick={{ fill: "#70768A", fontSize: 11 }} />
+            <YAxis allowDecimals={false} tick={{ fill: "#70768A", fontSize: 11 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" radius={[10, 10, 0, 0]} fill={palette.gold} />
+            <Bar dataKey="count" radius={[10, 10, 0, 0]} fill={palette.primary} />
           </BarChart>
         </ResponsiveContainer>
       </div>

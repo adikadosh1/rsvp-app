@@ -27,21 +27,8 @@ function MobileMenuIcon() {
   );
 }
 
-function CrownMark() {
-  return (
-    <svg className="home-nav-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path
-        d="M10 46h44v6H10v-6Zm4-24 10 12 8-14 8 14 10-12 6 18H8l6-18Z"
-        fill="currentColor"
-        opacity="0.95"
-      />
-      <path
-        d="M16 16a4 4 0 1 0 0.001 0ZM32 10a4 4 0 1 0 0.001 0ZM48 16a4 4 0 1 0 0.001 0Z"
-        fill="currentColor"
-        opacity="0.55"
-      />
-    </svg>
-  );
+function BrandMark() {
+  return <img className="home-nav-mark" src="/brand/logo-mark.svg" alt="" aria-hidden="true" />;
 }
 
 function TopNav() {
@@ -87,7 +74,7 @@ function TopNav() {
     <nav className="home-nav" aria-label="תפריט ראשי">
       <div className="home-nav-inner">
         <a className="home-nav-brand" href="#home" aria-label="חזרה לדף הבית">
-          <CrownMark />
+          <BrandMark />
           <span className="home-nav-brand-text">
             <span className="home-nav-eyebrow">RSVP PREMIUM</span>
             <span className="home-nav-name">
@@ -201,6 +188,7 @@ export default function Home() {
             <span className="pill-chip">RTL + עברית</span>
             <span className="pill-chip">דשבורד בזמן אמת</span>
             <span className="pill-chip">SMS / WhatsApp</span>
+            <span className="pill-chip">שמירת אלכוהול</span>
             <span className="pill-chip">ייצוא ודוחות</span>
           </div>
           <div className="home-hero-stats">
@@ -211,7 +199,7 @@ export default function Home() {
           <div className="home-hero-note">
             <div className="home-hero-note-title">מה מקבלים?</div>
             <div className="home-hero-note-text">
-              לינק אישי לכל אורח, ניהול רשימה, תזכורות, מנות מיוחדות וסטטיסטיקות—במראה יוקרתי שמתאים לאירוע.
+              לינק אישי לכל אורח, ניהול רשימה, תזכורות, מנות מיוחדות וסטטיסטיקות—וגם שירותי פרימיום משלימים כמו הושבה ושמירת אלכוהול.
             </div>
           </div>
         </div>
@@ -243,6 +231,11 @@ export default function Home() {
             title="שירותי הושבה באירועים"
             desc="תכנון שולחנות חכם שמאזן בין משפחות וקבוצות ומייצר חוויה נעימה."
             bullets={["תיאום העדפות וקונפליקטים", "איזון בין שולחנות", "תרשימי הושבה ברורים"]}
+          />
+          <ServiceCard
+            title="שמירת אלכוהול וניהול חלוקה"
+            desc="שומרים על האינטרס שלכם: ספירה, רישום, חלוקה מבוקרת—ומקסימום בקבוקים סגורים לזיכוי."
+            bullets={["ספירה ורישום בתחילת האירוע", "חלוקה מבוקרת לבר/שולחנות", "סיכום וסגירה בסוף האירוע"]}
           />
           <ServiceCard
             title="דשבורד מנהל בזמן אמת"
@@ -339,10 +332,27 @@ export default function Home() {
               נדבר ונבנה ביחד
             </a>
           </div>
+
+          <div className="home-price card">
+            <div className="home-price-kicker">ALCOHOL</div>
+            <div className="home-price-title">שמירת אלכוהול באירוע</div>
+            <div className="home-price-sub">מנהל אלכוהול + בקרה + סיכום</div>
+            <div className="home-price-points">
+              <div>רישום בקבוקים בתחילת האירוע</div>
+              <div>ניהול חלוקה לבר ול‑VIP</div>
+              <div>סגירה מסודרת בסוף האירוע</div>
+            </div>
+            <a className="btn btn-ghost" href="#contact">
+              תוספת לחבילה / הצעה מותאמת
+            </a>
+          </div>
         </div>
 
         <p className="hint" style={{ marginTop: 12 }}>
           המחיר הסופי תלוי בכמות מוזמנים, מורכבות ההושבה, וערוץ השליחה (SMS/WhatsApp). נשמח להתאים פתרון מדויק עבורך.
+        </p>
+        <p className="hint" style={{ marginTop: 8 }}>
+          רוצים לראות טווחי שוק ודוגמאות? <a href="/pricing#pricing">יש לנו מחקר קצר</a> (עם מקורות) — נשלח גם בוואטסאפ/מייל.
         </p>
       </Section>
 
@@ -396,6 +406,9 @@ export default function Home() {
       <footer className="footer-mini" role="contentinfo">
         <span>© {new Date().getFullYear()} הושבה כיד המלך</span>
         <span className="actions">
+          <a href="/brand/logo-lockup.svg" download>
+            הורדת לוגו (SVG)
+          </a>
           <a href="/privacy">פרטיות</a>
           <a href="/terms">תנאי שימוש</a>
         </span>

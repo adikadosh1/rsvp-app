@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { mkdir, writeFile } from "fs/promises";
 import { supabase, uploadInvitationImage } from "../services/supabase.js";
-import { sendMessageToGuest, isLikelyE164 } from "../services/twilio.js";
+import { sendMessageToGuest, isLikelyE164, smsSenderConfigured } from "../services/twilio.js";
 import { logInfo, logWarn } from "../utils/logger.js";
 import { normalizeResponseRow } from "../utils/rsvpNormalize.js";
 
@@ -164,7 +164,7 @@ router.get("/:eventId/send-preflight", async (req, res) => {
       missingToken,
       hasMessageTemplate: Boolean(normalizedEvent.message_template),
       publicAppUrlSet: Boolean(process.env.PUBLIC_APP_URL),
-      twilioSmsFromSet: Boolean(process.env.TWILIO_SMS_FROM),
+      twilioSmsFromSet: smsSenderConfigured(),
       twilioWhatsappFromSet: Boolean(process.env.TWILIO_WHATSAPP_FROM),
       sandboxHint:
         "ב-Twilio Sandbox רק מספרים שהצטרפו לסנדבוקס יכולים לקבל הודעות. נדרש גם קוד JOIN מהטלפון של הנמען."

@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import { mkdir, writeFile } from "fs/promises";
 import { supabase } from "../services/supabase.js";
 import { uploadInvitationImage } from "../services/supabase.js";
-import { normalizeIsraelPhone, sendMessageToGuest, isLikelyE164 } from "../services/twilio.js";
+import { normalizeIsraelPhone, sendMessageToGuest, isLikelyE164, smsSenderConfigured } from "../services/twilio.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
@@ -242,7 +242,7 @@ router.get("/owner/:ownerToken/send-preflight", async (req, res) => {
       missingToken,
       hasMessageTemplate: Boolean(event.message_template),
       publicAppUrlSet: Boolean(process.env.PUBLIC_APP_URL),
-      twilioSmsFromSet: Boolean(process.env.TWILIO_SMS_FROM),
+      twilioSmsFromSet: smsSenderConfigured(),
       twilioWhatsappFromSet: Boolean(process.env.TWILIO_WHATSAPP_FROM),
       sandboxHint:
         "ב-Twilio Sandbox רק מספרים שהצטרפו לסנדבוקס יכולים לקבל הודעות. נדרש גם קוד JOIN מהטלפון של הנמען."
