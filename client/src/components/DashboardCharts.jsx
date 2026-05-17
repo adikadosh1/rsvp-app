@@ -11,11 +11,12 @@ import {
 } from "recharts";
 
 const palette = {
+  coral: "#FF6B7A",
   primary: "#6F4CFF",
   ok: "#22c55e",
   danger: "#ef4444",
   accent: "#3BA7FF",
-  uncertain: "#5A35F2",
+  uncertain: "#FF8F9A",
   muted: "#ECEEF5"
 };
 
@@ -100,7 +101,7 @@ export function ResponsesByHour({ items }) {
             <XAxis dataKey="hourLabel" tick={{ fill: "#70768A", fontSize: 11 }} />
             <YAxis allowDecimals={false} tick={{ fill: "#70768A", fontSize: 11 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" radius={[10, 10, 0, 0]} fill={palette.primary} />
+            <Bar dataKey="count" radius={[10, 10, 0, 0]} fill={palette.coral} />
           </BarChart>
         </ResponsiveContainer>
       </div>

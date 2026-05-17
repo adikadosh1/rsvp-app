@@ -3,7 +3,7 @@ export default function ProgressRing({
   max,
   size = 56,
   stroke = 6,
-  color = "var(--primary)",
+  color = "var(--coral)",
   trackColor = "var(--border)",
   label
 }) {
