@@ -220,7 +220,7 @@ export default function Home() {
         </p>
       </Section>
 
-      <Section id="services" title="השירותים שלנו" subtitle="מ‑A עד Z – כדי שהאירוע יהיה מדויק.">
+      <Section id="services" title="השירותים שלנו" subtitle="מ‑א׳ עד ת׳ – כדי שהאירוע יהיה מדויק.">
         <div className="home-services">
           <ServiceCard
             title="אישורי הגעה (RSVP) יוקרתי"
