@@ -701,9 +701,11 @@ a:hover {
 }
 
 .home-nav-mark {
-  height: 52px;
-  width: auto;
+  height: 58px !important;
+  width: 54px !important;
+  min-width: 54px;
   flex-shrink: 0;
+  display: block;
   transition: transform 0.25s var(--ease), filter 0.25s var(--ease);
 }
 
@@ -1183,10 +1185,11 @@ a:hover {
 }
 
 .brand-mini-mark {
-  width: 30px;
-  height: 30px;
+  width: 54px !important;
+  height: 58px !important;
+  min-width: 54px;
   flex-shrink: 0;
-  filter: drop-shadow(0 6px 14px rgba(111, 76, 255, 0.18));
+  filter: drop-shadow(0 4px 14px rgba(244, 168, 37, 0.35));
 }
 
 .brand-mini-eyebrow {

@@ -1,23 +1,15 @@
-/**
- * Crown + throne mark — transparent background, no tile.
- * Asset: /brand/logo-mark.svg
- */
-const HEIGHTS = { sm: 40, md: 54, lg: 68, xl: 80 };
+import CrownMarkSvg from "./CrownMarkSvg.jsx";
 
-export default function BrandMark({ size = "md", className = "", ...props }) {
+const HEIGHTS = { sm: 44, md: 58, lg: 72, xl: 84 };
+
+/**
+ * Crown mark for headers — inline SVG so it always displays next to the wordmark.
+ */
+export default function BrandMark({ size = "md", className = "" }) {
   const sizeClass =
     size === "sm" ? "logo-mark-sm" : size === "lg" ? "logo-mark-lg" : size === "xl" ? "logo-mark-xl" : "logo-mark-md";
-  const h = HEIGHTS[size] || HEIGHTS.md;
 
-  return (
-    <img
-      className={`logo-mark ${sizeClass} ${className}`.trim()}
-      src="/brand/logo-mark.svg"
-      alt=""
-      aria-hidden="true"
-      height={h}
-      decoding="async"
-      {...props}
-    />
-  );
+  return <CrownMarkSvg className={`logo-mark ${sizeClass} ${className}`.trim()} />;
 }
+
+export { HEIGHTS as brandMarkHeights };

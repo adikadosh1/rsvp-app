@@ -1,0 +1,45 @@
+/** Inline crown + throne mark — always renders (no external img dependency). */
+export default function CrownMarkSvg({ className = "", title = "הושבה כיד המלך" }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 224 240"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label={title}
+    >
+      <defs>
+        <linearGradient id="hkCrownGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F4A825" />
+          <stop offset="100%" stopColor="#d8b55b" />
+        </linearGradient>
+      </defs>
+      <g transform="translate(-10, -90)" aria-hidden="true">
+        <path fill="url(#hkCrownGold)" opacity="0.96" d="M18 234h188v30H18v-30Z" />
+        <path fill="url(#hkCrownGold)" opacity="0.92" d="M22 198 44 120 76 158 112 98 148 158 180 120 202 198 22 198Z" />
+        <path fill="url(#hkCrownGold)" opacity="0.55" d="M48 120a12 12 0 1 0 0.001 0ZM112 92a12 12 0 1 0 0.001 0ZM176 120a12 12 0 1 0 0.001 0Z" />
+        <path
+          fill="url(#hkCrownGold)"
+          opacity="0.36"
+          d="M58 230v-60c0-30 24-54 54-54s54 24 54 54v60h-22v-60c0-18-14-32-32-32s-32 14-32 32v60H58Z"
+        />
+        <path fill="url(#hkCrownGold)" opacity="0.22" d="M40 232c0-18 8-30 24-38v32c-10 5-14 12-14 24H40Z" />
+        <path fill="url(#hkCrownGold)" opacity="0.22" d="M190 232c0-18-8-30-24-38v32c10 5 14 12 14 24h10Z" />
+        <path
+          fill="url(#hkCrownGold)"
+          opacity="0.16"
+          d="M54 250c16-10 36-15 58-15s42 5 58 15c-18 10-38 15-58 15s-40-5-58-15Z"
+        />
+        <path
+          stroke="#F4A825"
+          opacity="0.44"
+          d="M22 290c30-22 62-33 94-33s64 11 94 33"
+          strokeWidth="6"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path stroke="#F4A825" opacity="0.32" d="M10 308h204" strokeWidth="5" strokeLinecap="round" fill="none" />
+      </g>
+    </svg>
+  );
+}
