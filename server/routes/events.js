@@ -418,6 +418,38 @@ router.post("/:eventId/send-invitations", async (req, res) => {
   }
 });
 
+router.post("/:eventId/guests/:guestId/send-reminder", async (req, res) => {
+  try {
+    const { eventId, guestId } = req.params;
+    const { channel = "sms", reminderText } = req.body || {};
+    const baseUrl = process.env.PUBLIC_APP_URL;
+    if (!baseUrl) return res.status(500).json({ error: "חסר PUBLIC_APP_URL בקובץ הסביבה." });
+
+    const { data: guest, error } = await supabase
+      .from("guests")
+      .select("*")
+      .eq("id", guestId)
+      .eq("event_id", eventId)
+      .single();
+    if (error || !guest) return res.status(404).json({ error: "אורח לא נמצא." });
+
+    const g = normalizeGuestRow(guest);
+    if (!g.invite_token) return res.status(400).json({ error: "לא נמצא טוקן אישי לאורח." });
+    if (!isLikelyE164(guest.phone)) return res.status(400).json({ error: "מספר טלפון לא תקין" });
+
+    await sendMessageToGuest({
+      phone: guest.phone,
+      channel,
+      body: `${reminderText || "נשמח לאישור הגעה בהקדם"}\n${baseUrl}/rsvp/${g.invite_token}`
+    });
+
+    res.json({ ok: true, guestId });
+  } catch (error) {
+    console.error("Send single reminder failed:", error);
+    res.status(500).json({ error: formatTwilioErr(error) || "שליחת תזכורת נכשלה." });
+  }
+});
+
 router.post("/:eventId/send-reminders", async (req, res) => {
   try {
     const { eventId } = req.params;

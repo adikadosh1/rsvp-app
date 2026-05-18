@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Check, HelpCircle, Minus, Plus, X } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
 import { Icon } from "../components/Icons.jsx";
-import BrandHeader from "../components/BrandHeader.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { fireConfetti } from "../lib/confetti.js";
 
@@ -11,6 +10,16 @@ const steps = ["סטטוס הגעה", "כמות מגיעים", "מנות מיו�
 
 function eventTitle(ev) {
   return ev?.event_name ?? ev?.name ?? "אירוע";
+}
+
+function formatEventWhen(ev) {
+  const raw = ev?.event_date ?? ev?.date;
+  if (!raw) return null;
+  try {
+    return new Intl.DateTimeFormat("he-IL", { dateStyle: "long", timeStyle: "short" }).format(new Date(raw));
+  } catch (_e) {
+    return String(raw);
+  }
 }
 
 function buildMapLinks({ mapsUrl, venueName, fallbackEventName }) {
@@ -89,6 +98,7 @@ export default function RSVPPage() {
     vegetarianCount: 0,
     kidsMealsCount: 0
   });
+  const [customQty, setCustomQty] = useState(false);
 
   useEffect(() => {
     setPageLoading(true);
@@ -192,185 +202,191 @@ export default function RSVPPage() {
 
   if (pageLoading) {
     return (
-      <div className="rsvp-page container">
-        <Spinner label="טוען את ההזמנה..." />
+      <div className="rsvp-premium-bg">
+        <div className="rsvp-shell">
+          <Spinner label="טוען את ההזמנה..." />
+        </div>
       </div>
     );
   }
 
+  const eventWhen = formatEventWhen(ev);
+
   return (
-    <div className="rsvp-page container">
-      <BrandHeader />
-      <section className={`card hero ${invitationImageUrl ? "hero-has-media" : ""}`}>
-        <div className="hero-inner">
-          <div className="hero-kicker">RSVP</div>
-          <h1 className="hero-title">
-            אישור הגעה <span>{eventTitle(ev)}</span>
-          </h1>
-          <p className="hero-sub">{guestName ? `${guestName}, נשמח לאישור הגעה קצר` : "טוען הזמנה..."}</p>
-        </div>
-        {invitationImageUrl && (
-          <div className="hero-media" aria-label="תמונת הזמנה">
-            <img src={invitationImageUrl} alt="תמונת הזמנה" loading="lazy" />
-            <div className="hero-media-actions">
-              <button type="button" className="btn btn-ghost btn-mini" onClick={() => setFullInviteOpen(true)}>
-                תצוגה מלאה
-              </button>
-              <a className="btn btn-ghost btn-mini" href={invitationImageUrl} target="_blank" rel="noreferrer">
-                פתח בטאב
-              </a>
-            </div>
-          </div>
-        )}
-      </section>
+    <div className="rsvp-premium-bg">
+      <div className="rsvp-shell">
+        <article className="rsvp-glass-card">
+          <header className={invitationImageUrl ? "rsvp-invite-hero" : "rsvp-invite-hero rsvp-invite-hero--plain"}>
+            {invitationImageUrl ? (
+              <>
+                <img src={invitationImageUrl} alt="" loading="lazy" />
+                <div className="rsvp-invite-overlay">
+                  {guestName ? <span className="rsvp-guest-chip">{guestName}</span> : null}
+                  <h1>{eventTitle(ev)}</h1>
+                  {eventWhen ? <p className="rsvp-meta-line">{eventWhen}</p> : null}
+                  {ev?.venue_name ? <p className="rsvp-meta-line">{ev.venue_name}</p> : null}
+                </div>
+              </>
+            ) : (
+              <div className="rsvp-invite-overlay" style={{ position: "relative", minHeight: 160 }}>
+                {guestName ? <span className="rsvp-guest-chip">{guestName}</span> : null}
+                <h1>{eventTitle(ev)}</h1>
+                <p className="rsvp-meta-line">{guestName ? `${guestName}, נשמח לאישור הגעה` : "אישור הגעה"}</p>
+              </div>
+            )}
+          </header>
 
-      {/* Invitation image is shown inside the hero (no duplicate card below). */}
-
-            <section className="rsvp-card">
-        <div className="rsvp-progress" aria-hidden="true">
-          {steps.map((_, index) => (
-            <span key={index} className={`rsvp-progress-seg ${index <= step ? "done" : ""}`} />
-          ))}
-        </div>
-
-        {step === 0 && (
-          <div className="rsvp-step-body step-box">
-            <h3>האם תגיעו לאירוע?</h3>
-            <div className="rsvp-choice-grid">
-              {[
-                { status: "מגיע", cls: "yes", Icon: Check },
-                { status: "לא מגיע", cls: "no", Icon: X },
-                { status: "לא יודע", cls: "maybe", Icon: HelpCircle }
-              ].map(({ status, cls, Icon: Ic }) => (
-                <button
-                  key={status}
-                  type="button"
-                  className={`rsvp-choice-btn ${cls} ${form.status === status ? "selected" : ""}`}
-                  onClick={() => setForm((prev) => ({ ...prev, status }))}
-                >
-                  <span className="rsvp-choice-icon">
-                    <Ic size={22} />
-                  </span>
-                  {status}
-                </button>
+          <section className="rsvp-card-inner">
+            <div className="rsvp-progress" aria-hidden="true">
+              {steps.map((_, index) => (
+                <span key={index} className={`rsvp-progress-seg ${index <= step ? "done" : ""}`} />
               ))}
             </div>
-            <p className="hint">אם בחרת &quot;לא מגיע&quot;, נשמור את התשובה מיד בלי שלבי המנות.</p>
-          </div>
-        )}
 
-        {step === 1 && (
-          <div className="rsvp-step-body step-box">
-            <h3>כמה אורחים מגיעים?</h3>
-            <div className="qty-stepper">
-              <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, attendeesCount: Math.max(1, p.attendeesCount - 1) }))} aria-label="הפחת">
-                <Minus size={22} />
-              </button>
-              <span className="qty-value">{form.attendeesCount}</span>
-              <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, attendeesCount: Math.min(99, p.attendeesCount + 1) }))} aria-label="הוסף">
-                <Plus size={22} />
-              </button>
-            </div>
-            {fieldErrors.attendeesCount ? <div className="field-error">{fieldErrors.attendeesCount}</div> : null}
-            <p className="hint">ניתן לבחור בין 1 ל-99 אורחים.</p>
-          </div>
-        )}
-
-                {step === 2 && (
-          <div className="rsvp-step-body step-box">
-            <h3>מנות מיוחדות</h3>
-            {form.status !== "מגיע" ? (
-              <p className="hint">לא נדרשות מנות מיוחדות לפי הסטטוס שבחרת.</p>
-            ) : (
-              <div className="meal-cards">
-                <div className="meal-card">
-                  <span className="meal-card-label">מנות צמחוניות</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max={maxMealCount}
-                    value={form.vegetarianCount}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        vegetarianCount: Math.min(maxMealCount, Number(e.target.value) || 0)
-                      }))
-                    }
-                  />
+            {step === 0 && (
+              <div key="step-0" className="rsvp-step-panel">
+                <h3 className="rsvp-step-title">האם תגיעו לאירוע?</h3>
+                <div className="rsvp-status-cards">
+                  {[
+                    { status: "מגיע", cls: "yes", emoji: "✅", sub: "נשמח לראותכם" },
+                    { status: "לא מגיע", cls: "no", emoji: "❌", sub: "מצטערים שלא תגיעו" },
+                    { status: "לא יודע", cls: "maybe", emoji: "❓", sub: "עדיין לא בטוחים" }
+                  ].map(({ status, cls, emoji, sub }) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className={`rsvp-status-card ${cls} ${form.status === status ? "selected" : ""}`}
+                      onClick={() => setForm((prev) => ({ ...prev, status }))}
+                    >
+                      <span className="rsvp-status-emoji" aria-hidden="true">{emoji}</span>
+                      <span>
+                        <strong>{status}</strong>
+                        <span className="hint" style={{ display: "block", marginTop: 4 }}>{sub}</span>
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                <div className="meal-card">
-                  <span className="meal-card-label">מנות ילדים</span>
+                <p className="hint">אם בחרת &quot;לא מגיע&quot;, נשמור את התשובה מיד.</p>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div key="step-1" className="rsvp-step-panel">
+                <h3 className="rsvp-step-title">כמה אורחים מגיעים?</h3>
+                <p className="hint" style={{ marginBottom: 12 }}>בחרו מספר או הזינו יותר מ-10</p>
+                <div className="rsvp-qty-grid">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`rsvp-qty-btn ${!customQty && form.attendeesCount === n ? "selected" : ""}`}
+                      onClick={() => {
+                        setCustomQty(false);
+                        setForm((p) => ({ ...p, attendeesCount: n }));
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <label className="field" style={{ marginTop: 14 }}>
+                  <span>יותר מ-10</span>
                   <input
                     type="number"
-                    min="0"
-                    max={maxMealCount}
-                    value={form.kidsMealsCount}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        kidsMealsCount: Math.min(maxMealCount, Number(e.target.value) || 0)
-                      }))
-                    }
+                    min="11"
+                    max="99"
+                    value={customQty ? form.attendeesCount : ""}
+                    placeholder="הזינו מספר"
+                    onChange={(e) => {
+                      const n = Number(e.target.value);
+                      if (!Number.isFinite(n)) return;
+                      setCustomQty(true);
+                      setForm((p) => ({ ...p, attendeesCount: Math.min(99, Math.max(11, n)) }));
+                    }}
                   />
+                </label>
+                {fieldErrors.attendeesCount ? <div className="field-error">{fieldErrors.attendeesCount}</div> : null}
+              </div>
+            )}
+
+            {step === 2 && (
+              <div key="step-2" className="rsvp-step-panel">
+                <h3 className="rsvp-step-title">מנות מיוחדות</h3>
+                {form.status !== "מגיע" ? (
+                  <p className="hint">לא נדרשות מנות מיוחדות לפי הסטטוס שבחרת.</p>
+                ) : (
+                  <div className="meal-cards meal-cards-premium">
+                    <div className="meal-card meal-card-veg">
+                      <span className="meal-card-emoji">🌿</span>
+                      <span className="meal-card-label">צמחוני</span>
+                      <div className="qty-stepper meal-qty">
+                        <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, vegetarianCount: Math.max(0, p.vegetarianCount - 1) }))} aria-label="הפחת צמחוני"><Minus size={18} /></button>
+                        <span className="qty-value">{form.vegetarianCount}</span>
+                        <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, vegetarianCount: Math.min(maxMealCount, p.vegetarianCount + 1) }))} aria-label="הוסף צמחוני"><Plus size={18} /></button>
+                      </div>
+                    </div>
+                    <div className="meal-card meal-card-kids">
+                      <span className="meal-card-emoji">🧒</span>
+                      <span className="meal-card-label">מנות ילדים</span>
+                      <div className="qty-stepper meal-qty">
+                        <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, kidsMealsCount: Math.max(0, p.kidsMealsCount - 1) }))} aria-label="הפחת ילדים"><Minus size={18} /></button>
+                        <span className="qty-value">{form.kidsMealsCount}</span>
+                        <button type="button" className="qty-btn-round" onClick={() => setForm((p) => ({ ...p, kidsMealsCount: Math.min(maxMealCount, p.kidsMealsCount + 1) }))} aria-label="הוסף ילדים"><Plus size={18} /></button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {form.status === "מגיע" && (
+                  <p className="rsvp-meal-summary hint">
+                    סיכום: {form.attendeesCount} אורחים · {form.vegetarianCount} צמחוני · {form.kidsMealsCount} ילדים
+                  </p>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div key="step-3" className="rsvp-step-panel rsvp-success success-box">
+                <div className="rsvp-success-check">
+                  <Check size={36} strokeWidth={3} />
+                </div>
+                <h3 className="success-title">תודה{guestName ? ` ${guestName}` : ""}! אישרתם הגעה</h3>
+                {form.status === "מגיע" && (
+                  <p className="hint">
+                    {form.attendeesCount} אורחים · {form.vegetarianCount} מנות צמחוניות · {form.kidsMealsCount} מנות ילדים
+                  </p>
+                )}
+                <div className="rsvp-gadgets">
+                  <a className="btn btn-gold" href={googleCalendarUrl(eventTitle(ev), ev?.event_date ?? ev?.date)} target="_blank" rel="noreferrer">📅 הוסף ליומן</a>
+                  {mapLinks?.waze && <a className="btn" href={mapLinks.waze} target="_blank" rel="noreferrer">🔵 Waze</a>}
+                  {mapLinks?.google && <a className="btn btn-accent" href={mapLinks.google} target="_blank" rel="noreferrer">🗺️ Google Maps</a>}
                 </div>
               </div>
             )}
-            <p className="hint" style={{ marginTop: 12 }}>עד {maxMealCount} מנות לפי כמות המגיעים.</p>
-          </div>
-        )}
 
-        {step === 3 && (
-          <div className="rsvp-step-body rsvp-success success-box">
-            <div className="rsvp-success-check">
-              <Check size={36} strokeWidth={3} />
-            </div>
-            <h3 className="success-title">תודה! תשובתכם נשמרה</h3>
-            <p className="hint">נתראה בשמחות — אפשר להוסיף ליומן או לנווט לאולם.</p>
-            <div className="rsvp-gadgets">
-              <a className="btn btn-gold" href={googleCalendarUrl(eventTitle(ev), ev?.event_date ?? ev?.date)} target="_blank" rel="noreferrer">
-                הוסף ליומן
-              </a>
-              {mapLinks?.google && (
-                <a className="btn btn-accent" href={mapLinks.google} target="_blank" rel="noreferrer">
-                  Google Maps
-                </a>
+            <div className="rsvp-footer-actions">
+              {step > 0 && step < 3 && (
+                <button className="btn" type="button" onClick={prev} disabled={loading}>חזרה</button>
               )}
-              {mapLinks?.waze && (
-                <a className="btn" href={mapLinks.waze} target="_blank" rel="noreferrer">
-                  Waze
-                </a>
+              {step === 0 && (
+                <button className="btn btn-accent btn-ripple" type="button" onClick={next} disabled={loading}>
+                  {form.status === "לא מגיע" ? (loading ? "שומר..." : "שמירת תשובה") : "המשך"}
+                </button>
+              )}
+              {step === 1 && (
+                <button className="btn btn-accent btn-ripple" type="button" onClick={next} disabled={loading}>המשך</button>
+              )}
+              {step === 2 && (
+                <button className="btn btn-gold btn-ripple" type="button" onClick={submitAll} disabled={loading}>
+                  {loading ? "שומר..." : "שליחת אישור"}
+                </button>
               )}
             </div>
-          </div>
-        )}
-
-        <div className="rsvp-footer-actions">
-          {step > 0 && step < 3 && (
-            <button className="btn" type="button" onClick={prev} disabled={loading}>
-              חזרה
-            </button>
-          )}
-          {step === 0 && (
-            <button className="btn btn-accent" type="button" onClick={next} disabled={loading}>
-              {form.status === "לא מגיע" ? (loading ? "שומר..." : "שמירת תשובה") : "המשך"}
-            </button>
-          )}
-          {step === 1 && (
-            <button className="btn btn-accent" type="button" onClick={next} disabled={loading}>
-              המשך
-            </button>
-          )}
-          {step === 2 && (
-            <button className="btn btn-gold" type="button" onClick={submitAll} disabled={loading}>
-              {loading ? "שומר..." : "שליחת אישור"}
-            </button>
-          )}
-        </div>
-        {notice && <p className="status">{notice}</p>}
-      </section>
+            {notice && <p className="status">{notice}</p>}
+          </section>
+        </article>
 
       {ev && (
-        <section className="card rsvp-details">
+        <section className="rsvp-glass-card rsvp-details" style={{ marginTop: 16 }}>
           <div className="details-head">
             <div>
               <h3 style={{ margin: 0 }}>פרטי הגעה</h3>
@@ -457,6 +473,7 @@ export default function RSVPPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

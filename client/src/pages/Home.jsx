@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import ScrollReveal from "../components/ScrollReveal.jsx";
 
 function Section({ id, title, subtitle, children }) {
   return (
-    <section id={id} className="card home-section">
+    <ScrollReveal as="section" id={id} className="card home-section">
       <div className="home-section-head">
         <h2 style={{ margin: 0 }}>{title}</h2>
         {subtitle ? (
@@ -13,7 +14,7 @@ function Section({ id, title, subtitle, children }) {
         ) : null}
       </div>
       <div className="prose">{children}</div>
-    </section>
+    </ScrollReveal>
   );
 }
 
@@ -162,7 +163,7 @@ export default function Home() {
       <section id="home" className="card hero" aria-label="פתיח">
         <div className="hero-inner">
           <div className="hero-kicker">PREMIUM EVENT OPS</div>
-          <h1 className="hero-title">
+          <h1 className="hero-title display-h1">
             אירוע מדויק מתחיל ב‑<span>הושבה</span> וב‑<span>RSVP</span> שעובד
           </h1>
           <p className="hero-sub">

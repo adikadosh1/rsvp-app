@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Bell, Pencil } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
+import { avatarColorFor, avatarInitial } from "../lib/avatarColor.js";
 import { useToast } from "./ToastProvider.jsx";
 import EmptyState from "./EmptyState.jsx";
 import { responseMealColumns, statusLabel } from "../utils/rsvpDisplay.js";
@@ -20,6 +21,7 @@ function badgeClass(stat) {
   if (stat === "מגיע") return "badge badge-ok";
   if (stat === "לא מגיע") return "badge badge-danger";
   if (stat === "לא יודע") return "badge badge-warn";
+  if (stat === "טרם ענה") return "badge badge-pending";
   return "badge badge-muted";
 }
 
@@ -29,6 +31,16 @@ export default function GuestTable({ guests, eventId }) {
   const [sortDir, setSortDir] = useState("asc");
   const [page, setPage] = useState(1);
   const [sendingId, setSendingId] = useState(null);
+  const [selected, setSelected] = useState(() => new Set());
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const toggleSort = (key) => {
     setSortKey((prev) => {
@@ -76,19 +88,31 @@ export default function GuestTable({ guests, eventId }) {
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const pageIds = pageRows.map(({ guest }) => guest.id);
+  const allOnPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
   const sendReminder = async (guest) => {
     if (!eventId || !guest?.invite_token) return;
     try {
       setSendingId(guest.id);
-      await apiFetch(`/events/${eventId}/send-reminders`, {
+      await apiFetch(`/events/${eventId}/guests/${guest.id}/send-reminder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ channel: "sms", reminderText: `שלום ${guest.full_name}, נשמח לאישור הגעה` })
       });
       toast.push({
         tone: "success",
-        title: "תזכורות נשלחו",
-        message: "נשלחו תזכורות לכל מי שטרם ענה לאירוע"
+        title: "תזכורת נשלחה",
+        message: `נשלחה תזכורת ל־${guest.full_name || "האורח"}`
       });
     } catch (e) {
       toast.push({ tone: "danger", title: "שליחה נכשלה", message: e.message });
@@ -118,10 +142,28 @@ export default function GuestTable({ guests, eventId }) {
   return (
     <section className="card">
       <h3>טבלת אורחים ותשובות בזמן אמת</h3>
+      {selected.size > 0 && (
+        <div className="bulk-bar" role="toolbar" aria-label="פעולות מרובות">
+          <span>
+            נבחרו <strong>{selected.size}</strong> אורחים
+          </span>
+          <button type="button" className="btn btn-sm" onClick={() => setSelected(new Set())}>
+            ביטול בחירה
+          </button>
+        </div>
+      )}
       <div className="table-wrapper">
         <table className="table-pro">
           <thead>
             <tr>
+              <th scope="col" style={{ width: 44 }}>
+                <input
+                  type="checkbox"
+                  aria-label="בחר הכל בעמוד"
+                  checked={allOnPageSelected}
+                  onChange={toggleSelectAll}
+                />
+              </th>
               {headerBtn("שם", SORT_KEYS.name)}
               {headerBtn("טלפון", SORT_KEYS.phone)}
               {headerBtn("סטטוס", SORT_KEYS.status)}
@@ -133,8 +175,23 @@ export default function GuestTable({ guests, eventId }) {
           </thead>
           <tbody>
             {pageRows.map(({ guest, meals, stat }) => (
-              <tr key={guest.id}>
-                <td>{guest.full_name}</td>
+              <tr key={guest.id} className={selected.has(guest.id) ? "row-selected" : undefined}>
+                <td>
+                  <input
+                    type="checkbox"
+                    aria-label={`בחר ${guest.full_name || "אורח"}`}
+                    checked={selected.has(guest.id)}
+                    onChange={() => toggleSelect(guest.id)}
+                  />
+                </td>
+                <td>
+                  <div className="guest-cell-name">
+                    <span className="guest-avatar" style={{ background: avatarColorFor(guest.full_name || "") }} aria-hidden="true">
+                      {avatarInitial(guest.full_name || "")}
+                    </span>
+                    <span>{guest.full_name}</span>
+                  </div>
+                </td>
                 <td>{guest.phone}</td>
                 <td>
                   <span className={badgeClass(stat)}>{stat}</span>

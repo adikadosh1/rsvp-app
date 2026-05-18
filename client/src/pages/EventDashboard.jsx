@@ -3,8 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import GuestTable from "../components/GuestTable.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
 import { RSVPDonut, ResponsesByHour, RecentResponses } from "../components/DashboardCharts.jsx";
-import CountdownTimer from "../components/CountdownTimer.jsx";
+import CountdownFlip from "../components/CountdownFlip.jsx";
+import PageHeader from "../components/PageHeader.jsx";
+import StatCard from "../components/StatCard.jsx";
 import { useToast } from "../components/ToastProvider.jsx";
+import { Users, UserCheck, UserX, Clock } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
 import { getBrowserSupabase } from "../lib/supabaseBrowser.js";
 import { statusLabel } from "../utils/rsvpDisplay.js";
@@ -190,39 +193,13 @@ export default function EventDashboard() {
     return `https://www.google.com/maps?q=${encodeURIComponent(raw)}`;
   }, [event?.maps_url, event?.venue_name]);
 
-  const statCards = useMemo(() => {
-    const baseMax = Math.max(1, stats.total);
-    return [
-      {
-        key: "total",
-        label: "סה״כ אורחים",
-        value: stats.total,
-        max: baseMax,
-        color: "var(--primary)"
-      },
-      {
-        key: "arrived",
-        label: "מגיעים",
-        value: stats.arrived,
-        max: baseMax,
-        color: "var(--ok)"
-      },
-      {
-        key: "notAnswered",
-        label: "לא ענו",
-        value: stats.notAnswered,
-        max: baseMax,
-        color: "var(--accent)"
-      },
-      {
-        key: "notArrived",
-        label: "לא מגיעים",
-        value: stats.notArrived,
-        max: baseMax,
-        color: "var(--danger)"
-      }
-    ];
-  }, [stats]);
+  const sparkSeries = useMemo(() => (timeline?.byHour || []).map((h) => h.count || 0), [timeline]);
+
+  const ringColor = useMemo(() => {
+    if (responseRate >= 66) return "var(--ok)";
+    if (responseRate >= 33) return "var(--gold)";
+    return "var(--danger)";
+  }, [responseRate]);
 
   const filteredGuests = useMemo(() => {
     const q = query.trim();
@@ -244,61 +221,91 @@ export default function EventDashboard() {
 
   return (
     <div className="grid">
-      <nav className="breadcrumb" aria-label="מיקום">
-        <Link to="/dashboard">מסך ראשי</Link>
-        <span className="sep">/</span>
-        <span>אירוע</span>
-      </nav>
+      <PageHeader
+        title="דשבורד אירוע"
+        subtitle={loading ? "טוען..." : event?.event_name || "—"}
+        breadcrumbs={[
+          { label: "מסך ראשי", to: "/dashboard" },
+          { label: "אירוע" }
+        ]}
+        actions={
+          <>
+            <span className={`rt-pill ${rt.status}`} role="status" aria-live="polite">
+              {rt.enabled
+                ? rt.status === "on"
+                  ? "מחובר בזמן אמת"
+                  : rt.status === "error"
+                    ? "Realtime לא זמין"
+                    : "מתחבר..."
+                : "Polling"}
+            </span>
+            <Link className="btn btn-primary" to={`/manage/${eventId}`}>
+              העלאה ושליחה
+            </Link>
+            <Link className="btn" to="/dashboard">
+              חזרה
+            </Link>
+          </>
+        }
+      />
 
-      <section className="card actions-row">
-        <div>
-          <h2>דשבורד אירוע</h2>
-          <p className="hint">{loading ? "טוען..." : event?.event_name || "—"}</p>
-          <div className="rt-row" role="status" aria-live="polite">
-            <span className={`rt-pill ${rt.status}`}>
-              {rt.enabled ? (rt.status === "on" ? "מחובר בזמן אמת" : rt.status === "error" ? "Realtime לא זמין" : "מתחבר בזמן אמת...") : "Polling"}
-            </span>
-            <span className="rt-last">
-              עדכון אחרון: {rt.lastUpdate ? new Date(rt.lastUpdate).toLocaleTimeString("he-IL") : "—"}
-            </span>
-          </div>
+      {loading ? (
+        <div className="stats-hero">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="stat-card-hero skeleton" style={{ height: 120 }} />
+          ))}
         </div>
-        <div className="actions">
-          <Link className="btn btn-gold" to={`/manage/${eventId}`}>
-            העלאת אורחים ושליחה
-          </Link>
-          <Link className="btn" to="/dashboard">
-            חזרה למסך הראשי
-          </Link>
+      ) : (
+        <div className="stats-hero">
+          <StatCard label="סה״כ אורחים" value={stats.total} icon={Users} spark={sparkSeries} />
+          <StatCard
+            label="מגיעים"
+            value={stats.arrived}
+            icon={UserCheck}
+            trendUp
+            trend={`${stats.total ? Math.round((stats.arrived / stats.total) * 100) : 0}%`}
+            spark={sparkSeries}
+          />
+          <StatCard label="לא ענו" value={stats.notAnswered} icon={Clock} trend={String(stats.notAnswered)} trendUp={false} spark={sparkSeries} />
+          <StatCard label="לא מגיעים" value={stats.notArrived} icon={UserX} trend={String(stats.notArrived)} trendUp={false} spark={sparkSeries} />
         </div>
-      </section>
+      )}
 
       <section className="card">
-        <div className="widgets-row">
-          <div className="widget">
-            <div className="widget-title">ספירה לאחור</div>
-            <CountdownTimer eventDate={event?.event_date || event?.date} />
-            <div style={{ marginTop: 16 }}>
-              <p className="hint" style={{ marginBottom: 6 }}>
-                אחוז מענה: <strong>{responseRate}%</strong>
-              </p>
-              <div className="progress-bar" aria-hidden="true">
-                <div className="progress-bar-fill" style={{ width: `${responseRate}%` }} />
+        <div className="dashboard-grid">
+          <div className="dashboard-main">
+            <div className="widget" style={{ marginBottom: 20 }}>
+              <div className="widget-title">ספירה לאחור לאירוע</div>
+              <CountdownFlip eventDate={event?.event_date || event?.date} eventName={event?.event_name} />
+            </div>
+            <div className="widgets-row">
+              <div className="widget">
+                <RSVPDonut stats={stats} />
+              </div>
+              <div className="widget">
+                <ResponsesByHour items={responsesByHour} />
               </div>
             </div>
           </div>
-
-          <div className="widget">
-            <RSVPDonut stats={stats} />
-          </div>
-
-          <div className="widget">
-            <ResponsesByHour items={responsesByHour} />
-          </div>
-
-          <div className="widget">
+          <aside className="dashboard-aside">
+            <div className="card" style={{ padding: 20, marginBottom: 16, textAlign: "center" }}>
+              <div className="widget-title" style={{ marginBottom: 12 }}>
+                אחוז מענה
+              </div>
+              <ProgressRing
+                value={responseRate}
+                max={100}
+                size={120}
+                stroke={10}
+                color={ringColor}
+                label={`${responseRate}% מענה`}
+              />
+              <p className="hint" style={{ marginTop: 12 }}>
+                {stats.total - stats.notAnswered} מתוך {stats.total} ענו
+              </p>
+            </div>
             <RecentResponses items={timeline?.recent || []} />
-          </div>
+          </aside>
         </div>
       </section>
 
@@ -318,39 +325,16 @@ export default function EventDashboard() {
         </section>
       )}
 
-      <section className="card">
-        <h3>סטטיסטיקות</h3>
-        {loading ? (
-          <div className="stats-row">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="stat">
-                <div className="skeleton" style={{ height: 28, width: 60, margin: "0 auto" }} />
-                <div className="skeleton" style={{ height: 14, width: "80%", margin: "10px auto 0" }} />
-              </div>
-            ))}
+      {!loading && (
+        <section className="card">
+          <div className="stats-subrow">
+            <div className="pill-chip">לא יודעים: <strong>{stats.uncertain}</strong></div>
+            <div className="pill-chip">סה״כ סועדים: <strong>{stats.totalDiners}</strong></div>
+            <div className="pill-chip">מנות צמחוניות: <strong>{stats.totalVeg}</strong></div>
+            <div className="pill-chip">מנות ילדים: <strong>{stats.totalKids}</strong></div>
           </div>
-        ) : (
-          <>
-            <div className="stats-row">
-              {statCards.map((s) => (
-                <div key={s.key} className="stat stat-ring">
-                  <div className="stat-top">
-                    <div className="stat-number">{s.value}</div>
-                    <ProgressRing value={s.value} max={s.max} color={s.color} label={s.label} />
-                  </div>
-                  <div className="stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="stats-subrow">
-              <div className="pill-chip">לא יודעים: <strong>{stats.uncertain}</strong></div>
-              <div className="pill-chip">סה״כ סועדים (מגיעים): <strong>{stats.totalDiners}</strong></div>
-              <div className="pill-chip">מנות צמחוניות: <strong>{stats.totalVeg}</strong></div>
-              <div className="pill-chip">מנות ילדים: <strong>{stats.totalKids}</strong></div>
-            </div>
-          </>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="card">
         <h3>חיפוש וסינון</h3>

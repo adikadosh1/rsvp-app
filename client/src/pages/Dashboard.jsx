@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api.js";
+import ScrollReveal from "../components/ScrollReveal.jsx";
 import { useToast } from "../components/ToastProvider.jsx";
 
 export default function Dashboard() {
@@ -60,7 +61,7 @@ export default function Dashboard() {
   return (
     <div className="grid">
       {lastEventId ? (
-        <section className="card">
+        <ScrollReveal as="section" className="card">
           <div className="actions-row" style={{ justifyContent: "space-between" }}>
             <div>
               <h2 style={{ margin: 0 }}>כניסה מהירה</h2>
@@ -77,13 +78,13 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-        </section>
+        </ScrollReveal>
       ) : null}
 
-      <section className="card">
+      <ScrollReveal as="section" className="card">
         <div className="actions-row" style={{ justifyContent: "space-between" }}>
           <div>
-            <h2 style={{ margin: 0 }}>Self‑Serve לבעל אירוע</h2>
+            <h2 className="display-h2" style={{ margin: 0 }}>Self‑Serve לבעל אירוע</h2>
             <p className="hint" style={{ marginTop: 8 }}>
               צור קישור אישי לבעל האירוע — והוא ימלא פרטים ויעלה מוזמנים לבד.
             </p>
@@ -94,12 +95,12 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
-      <section className="card">
+      <ScrollReveal as="section" className="card">
         <div className="actions-row" style={{ justifyContent: "space-between" }}>
           <div>
-            <h2 style={{ margin: 0 }}>אירועים אחרונים</h2>
+            <h2 className="display-h2" style={{ margin: 0 }}>אירועים אחרונים</h2>
             <p className="hint" style={{ marginTop: 8 }}>
               כניסה מהירה לדשבורד או לשליחה.
             </p>
@@ -156,10 +157,10 @@ export default function Dashboard() {
         ) : (
           <div className="empty-state">עדיין אין אירועים. צור אירוע חדש כדי להתחיל.</div>
         )}
-      </section>
+      </ScrollReveal>
 
-      <section className="card">
-        <h2>יצירת אירוע חדש</h2>
+      <ScrollReveal as="section" className="card">
+        <h2 className="display-h2">יצירת אירוע חדש</h2>
         <form className="form-grid" onSubmit={createEvent}>
           <label className="field">
             <span>שם האירוע</span>
@@ -211,7 +212,7 @@ export default function Dashboard() {
           </button>
         </form>
         {notice && <p className="status">{notice}</p>}
-      </section>
+      </ScrollReveal>
     </div>
   );
 }
