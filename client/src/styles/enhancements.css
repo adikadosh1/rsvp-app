@@ -93,7 +93,7 @@
 .progress-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--gradient);
+  background: var(--gradient-primary);
   transition: width 0.6s var(--ease);
 }
 
@@ -135,23 +135,24 @@
 }
 
 .badge-ok {
-  background: rgba(34, 197, 94, 0.12);
-  color: #15803d;
+  background: rgba(37, 211, 102, 0.14);
+  color: #128c4a;
 }
 
 .badge-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
+  background: rgba(255, 75, 75, 0.14);
+  color: #c62828;
 }
 
 .badge-warn {
-  background: rgba(245, 158, 11, 0.14);
-  color: #b45309;
+  background: rgba(255, 149, 0, 0.14);
+  color: #c67600;
 }
 
-.badge-muted {
-  background: var(--bg-secondary);
-  color: var(--muted);
+.badge-muted,
+.badge-pending {
+  background: rgba(156, 163, 175, 0.16);
+  color: var(--status-muted, #9ca3af);
 }
 
 [data-theme="dark"] .badge-ok { color: #4ade80; }
@@ -163,7 +164,7 @@
 }
 
 .table-pro tbody tr:hover {
-  background: rgba(91, 45, 142, 0.04);
+  background: rgba(233, 30, 140, 0.04);
 }
 
 .table-actions {
@@ -409,21 +410,26 @@
 }
 
 .rsvp-choice-btn.selected {
-  border-color: transparent;
-  color: #fff;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
+  font-weight: 800;
 }
 
 .rsvp-choice-btn.selected.yes {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-color: var(--ok);
+  background: rgba(37, 211, 102, 0.1);
+  color: var(--ok);
 }
 
 .rsvp-choice-btn.selected.no {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: var(--danger);
+  background: rgba(255, 75, 75, 0.1);
+  color: var(--danger);
 }
 
 .rsvp-choice-btn.selected.maybe {
-  background: var(--gradient);
+  border-color: var(--amber);
+  background: rgba(255, 149, 0, 0.1);
+  color: var(--amber);
 }
 
 .rsvp-choice-icon {
@@ -522,12 +528,12 @@
   height: 72px;
   margin: 0 auto 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, #25d366, #128c7e);
   display: grid;
   place-items: center;
   color: #fff;
   animation: successPop 0.5s var(--ease) both;
-  box-shadow: 0 12px 32px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 12px 32px rgba(37, 211, 102, 0.35);
 }
 
 @keyframes successPop {
@@ -558,13 +564,21 @@
 
 /* Toast enhanced */
 .toast-success {
-  border-color: rgba(34, 197, 94, 0.35);
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.08), var(--card));
+  border-right: 4px solid #25d366;
+  background: linear-gradient(180deg, rgba(37, 211, 102, 0.08), var(--card));
 }
 
 .toast-danger {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), var(--card));
+  border-right: 4px solid #ff4b4b;
+  background: linear-gradient(180deg, rgba(255, 75, 75, 0.08), var(--card));
+}
+
+.toast-warning {
+  border-right: 4px solid #ff9500;
+}
+
+.toast-info {
+  border-right: 4px solid var(--primary);
 }
 
 .toast-success .toast-title { color: var(--ok); }
@@ -607,7 +621,7 @@
 
 /* Nav active sidebar */
 .nav-item.active {
-  background: rgba(91, 45, 142, 0.1);
+  background: rgba(233, 30, 140, 0.1);
   color: var(--primary);
   border-right-color: var(--primary);
 }

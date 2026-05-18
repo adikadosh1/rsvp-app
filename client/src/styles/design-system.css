@@ -3,22 +3,25 @@
    ============================================ */
 
 :root {
-  --primary: #5c2d91;
-  --primary-light: #7b4db5;
-  --primary-dark: #3d1a6b;
-  --secondary: #00b4d8;
-  --accent: #25d366;
-  --gold: #f4a825;
+  /* Diginet — ורוד / פוקסיה */
+  --primary: #e91e8c;
+  --primary-light: #f048a8;
+  --primary-dark: #c4006e;
+  --primary-bg: #fdf0f7;
+
+  --secondary: #ff6b6b;
+  --accent: #e91e8c;
+  --gold: #ff9500;
 
   --bg: #ffffff;
-  --bg-secondary: #f8f6ff;
+  --bg-secondary: #fdf0f7;
   --bg-card: #ffffff;
   --bg2: var(--bg-secondary);
   --card: var(--bg-card);
   --card2: var(--bg-card);
   --surface: var(--bg-card);
   --surface2: var(--bg-secondary);
-  --surface3: #f0ebf8;
+  --surface3: #fce8f3;
 
   --text-primary: #1a1a2e;
   --text-secondary: #6b7280;
@@ -27,33 +30,41 @@
   --muted: var(--text-secondary);
   --muted2: var(--text-muted);
 
-  --border: #e5e7eb;
-  --border-strong: rgba(92, 45, 145, 0.28);
+  --border: #f9d0ea;
+  --border-strong: #f048a8;
 
-  --shadow-sm: 0 1px 3px rgba(92, 45, 145, 0.08);
-  --shadow-md: 0 4px 16px rgba(92, 45, 145, 0.12);
-  --shadow-lg: 0 8px 32px rgba(92, 45, 145, 0.16);
-  --shadow-xl: 0 20px 60px rgba(92, 45, 145, 0.2);
+  --shadow-sm: 0 2px 8px rgba(233, 30, 140, 0.08);
+  --shadow-md: 0 4px 16px rgba(233, 30, 140, 0.14);
+  --shadow-lg: 0 8px 32px rgba(233, 30, 140, 0.18);
+  --shadow-xl: 0 20px 60px rgba(233, 30, 140, 0.22);
   --shadow-card: var(--shadow-md);
   --shadow-soft: var(--shadow-sm);
   --shadow: var(--shadow-lg);
 
-  --gradient-primary: linear-gradient(135deg, #5c2d91 0%, #00b4d8 100%);
-  --gradient-card: linear-gradient(145deg, #f8f6ff 0%, #ffffff 100%);
+  --gradient-primary: linear-gradient(135deg, #e91e8c 0%, #ff6b6b 100%);
+  --gradient-hero: linear-gradient(135deg, #e91e8c 0%, #c4006e 50%, #ff6b6b 100%);
+  --gradient-card: linear-gradient(145deg, #fdf0f7 0%, #ffffff 100%);
+  --gradient-button: linear-gradient(135deg, #e91e8c, #ff6b6b);
   --gradient: var(--gradient-primary);
-  --gradient-cta: var(--gradient-primary);
-  --gradient-soft: linear-gradient(135deg, rgba(92, 45, 145, 0.08) 0%, rgba(0, 180, 216, 0.08) 100%);
+  --gradient-cta: var(--gradient-button);
+  --gradient-soft: linear-gradient(135deg, rgba(233, 30, 140, 0.08) 0%, rgba(255, 107, 107, 0.06) 100%);
 
+  --whatsapp: #25d366;
+  --whatsapp-dark: #128c7e;
   --gold-strong: var(--primary);
   --gold-deep: var(--primary-dark);
   --accent-2: var(--primary-light);
-  --whatsapp: var(--accent);
-  --ok: #22c55e;
-  --danger: #ef4444;
-  --amber: var(--gold);
 
-  --ring: 0 0 0 3px rgba(92, 45, 145, 0.22);
-  --ring-accent: 0 0 0 3px rgba(0, 180, 216, 0.22);
+  --ok: #25d366;
+  --danger: #ff4b4b;
+  --amber: #ff9500;
+  --status-muted: #9ca3af;
+  --coral-deep: var(--primary-dark);
+  --border-coral: var(--border);
+  --pink-soft: rgba(233, 30, 140, 0.1);
+
+  --ring: 0 0 0 3px rgba(233, 30, 140, 0.22);
+  --ring-accent: 0 0 0 3px rgba(255, 107, 107, 0.2);
 
   --font-display: "Playfair Display", Georgia, ui-serif, serif;
   --font-body: "Inter", "Heebo", ui-sans-serif, system-ui, sans-serif;
@@ -111,7 +122,7 @@ body {
   width: var(--sidebar-width);
   background: var(--bg);
   border-left: 1px solid var(--border);
-  box-shadow: 4px 0 24px rgba(92, 45, 145, 0.08);
+  box-shadow: 4px 0 24px rgba(233, 30, 140, 0.08);
   backdrop-filter: none;
 }
 
@@ -147,7 +158,7 @@ body {
   width: auto;
   min-width: 48px;
   overflow: visible;
-  filter: drop-shadow(0 4px 14px rgba(244, 168, 37, 0.35));
+  filter: drop-shadow(0 4px 14px rgba(233, 30, 140, 0.25));
   transition: transform 0.25s var(--ease), filter 0.25s var(--ease);
 }
 
@@ -230,7 +241,7 @@ body {
 }
 
 .topbar-brand .logo-mark {
-  filter: drop-shadow(0 4px 12px rgba(92, 45, 145, 0.18));
+  filter: drop-shadow(0 4px 12px rgba(233, 30, 140, 0.18));
 }
 
 .wa-preview-avatar .logo-mark-sm {
@@ -263,7 +274,7 @@ body {
 }
 
 .nav-item:hover {
-  background: #f8f6ff;
+  background: var(--primary-bg);
   transform: translateX(-2px);
   color: var(--text-primary);
 }
@@ -287,7 +298,7 @@ body {
 }
 
 .nav-item.active .nav-icon-wrap {
-  background: rgba(92, 45, 145, 0.12);
+  background: rgba(233, 30, 140, 0.12);
 }
 
 .sidebar-user {
@@ -391,6 +402,7 @@ body {
 .stat-card-hero {
   background: var(--bg-card);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow-md);
@@ -430,18 +442,22 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--gradient-primary);
+  background: var(--primary-bg);
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--primary);
   box-shadow: var(--shadow-sm);
+}
+
+.stat-icon-ring svg {
+  color: var(--primary);
 }
 
 .stat-card-hero .stat-value {
   font-size: 32px;
   font-weight: 800;
   line-height: 1;
-  color: var(--text-primary);
+  color: var(--primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -575,17 +591,37 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-.btn-gold {
-  background: var(--gradient-primary);
+.btn-gold,
+.btn-primary,
+.btn-send-gradient {
+  background: var(--gradient-button);
   border: none;
   color: #fff;
   font-weight: 700;
   box-shadow: var(--shadow-md);
 }
 
-.btn-gold:hover {
+.btn-gold:hover,
+.btn-primary:hover,
+.btn-send-gradient:hover:not(:disabled) {
   filter: brightness(1.05);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Secondary CTA — מסגרת ורודה (דף הבית וכו') */
+.btn-accent {
+  border: 1px solid var(--primary);
+  background: var(--bg);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.btn-accent:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+  filter: none;
 }
 
 /* Toast top center */
@@ -602,6 +638,24 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   animation: toastSlideDown 0.35s var(--ease) both;
+  border-right: 4px solid var(--primary);
+}
+
+.toast-success {
+  border-right-color: #25d366;
+}
+
+.toast-danger {
+  border-right-color: #ff4b4b;
+}
+
+.toast-warning {
+  border-right-color: #ff9500;
+}
+
+.toast-info,
+.toast:not(.toast-success):not(.toast-danger):not(.toast-warning) {
+  border-right-color: var(--primary);
 }
 
 @keyframes toastSlideDown {
@@ -611,14 +665,26 @@ body {
 
 /* Skeleton premium */
 .skeleton {
-  background: linear-gradient(90deg, #f0ebf8 0%, #e8e0f5 50%, #f0ebf8 100%);
+  background: linear-gradient(90deg, #fdf0f7 0%, #fce8f3 50%, #fdf0f7 100%);
   background-size: 200% 100%;
+}
+
+/* Links */
+a:not(.btn):not(.nav-item):not(.home-nav-link):not(.bottom-nav-item) {
+  color: var(--primary);
+  text-decoration-color: rgba(233, 30, 140, 0.35);
+}
+
+a:not(.btn):not(.nav-item):not(.home-nav-link):not(.bottom-nav-item):hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
 }
 
 /* RSVP premium shell */
 .rsvp-premium-bg {
   min-height: 100vh;
-  background: linear-gradient(160deg, #f8f6ff 0%, #eef8ff 45%, #f8f6ff 100%);
+  background: linear-gradient(160deg, #fdf0f7 0%, #fff5f8 45%, #fdf0f7 100%);
   padding: 16px 12px 48px;
 }
 
@@ -636,7 +702,7 @@ body {
 .rsvp-invite-hero {
   position: relative;
   min-height: 200px;
-  background: var(--gradient-primary);
+  background: var(--gradient-hero);
 }
 
 .rsvp-invite-hero img {
@@ -649,7 +715,7 @@ body {
 .rsvp-invite-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(61, 26, 107, 0.85) 100%);
+  background: linear-gradient(180deg, transparent 30%, rgba(196, 0, 110, 0.88) 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -700,23 +766,38 @@ body {
   transform: scale(1.02);
 }
 
-.rsvp-status-card.yes:hover { box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2); border-color: var(--ok); }
-.rsvp-status-card.no:hover { box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2); border-color: var(--danger); }
-.rsvp-status-card.maybe:hover { box-shadow: 0 8px 24px rgba(244, 168, 37, 0.25); border-color: var(--gold); }
+.rsvp-status-card.yes:hover { box-shadow: 0 8px 24px rgba(37, 211, 102, 0.2); border-color: var(--ok); }
+.rsvp-status-card.no:hover { box-shadow: 0 8px 24px rgba(255, 75, 75, 0.2); border-color: var(--danger); }
+.rsvp-status-card.maybe:hover { box-shadow: 0 8px 24px rgba(255, 149, 0, 0.2); border-color: var(--amber); }
 
 .rsvp-status-card.selected.yes {
   border-color: var(--ok);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), #fff);
+  background: rgba(37, 211, 102, 0.08);
+  color: var(--ok);
+}
+
+.rsvp-status-card.selected.yes strong {
+  color: var(--ok);
 }
 
 .rsvp-status-card.selected.no {
   border-color: var(--danger);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), #fff);
+  background: rgba(255, 75, 75, 0.08);
+  color: var(--danger);
+}
+
+.rsvp-status-card.selected.no strong {
+  color: var(--danger);
 }
 
 .rsvp-status-card.selected.maybe {
-  border-color: var(--gold);
-  background: linear-gradient(135deg, rgba(244, 168, 37, 0.12), #fff);
+  border-color: var(--amber);
+  background: rgba(255, 149, 0, 0.08);
+  color: var(--amber);
+}
+
+.rsvp-status-card.selected.maybe strong {
+  color: var(--amber);
 }
 
 .rsvp-status-emoji {
@@ -743,7 +824,7 @@ body {
 }
 
 .rsvp-qty-btn.selected {
-  background: var(--gradient-primary);
+  background: var(--gradient-button);
   color: #fff;
   border-color: transparent;
   transform: scale(1.1);
@@ -854,7 +935,7 @@ body {
 }
 
 .table-pro tbody tr.row-selected {
-  background: rgba(92, 45, 145, 0.06);
+  background: rgba(233, 30, 140, 0.06);
 }
 
 /* RSVP inner padding */
@@ -903,13 +984,13 @@ body {
 }
 
 .meal-card-veg {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), #fff);
-  border-color: rgba(34, 197, 94, 0.35);
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.12), #fff);
+  border-color: rgba(37, 211, 102, 0.35);
 }
 
 .meal-card-kids {
-  background: linear-gradient(135deg, rgba(0, 180, 216, 0.12), #fff);
-  border-color: rgba(0, 180, 216, 0.35);
+  background: linear-gradient(135deg, rgba(255, 149, 0, 0.12), #fff);
+  border-color: rgba(255, 149, 0, 0.35);
 }
 
 .meal-card-emoji {
@@ -1009,17 +1090,6 @@ body {
   position: relative;
 }
 
-.btn-send-gradient {
-  background: var(--gradient-primary);
-  color: #fff;
-  border: none;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
 .btn-send-gradient.is-success {
   background: var(--ok);
 }
@@ -1069,7 +1139,7 @@ body {
     z-index: 90;
     background: var(--bg);
     border-top: 1px solid var(--border);
-    box-shadow: 0 -4px 24px rgba(92, 45, 145, 0.1);
+    box-shadow: 0 -4px 24px rgba(233, 30, 140, 0.1);
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
     justify-content: space-around;
     gap: 4px;

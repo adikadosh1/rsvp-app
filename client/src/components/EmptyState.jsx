@@ -9,8 +9,8 @@ export default function EmptyState({ title, description, icon = "guests" }) {
             <path d="M30 88c6-16 44-16 60 0" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" />
             <defs>
               <linearGradient id="eg" x1="0" y1="0" x2="120" y2="120">
-                <stop stopColor="#5B2D8E" />
-                <stop offset="1" stopColor="#4A90D9" />
+                <stop stopColor="#E91E8C" />
+                <stop offset="1" stopColor="#FF6B6B" />
               </linearGradient>
             </defs>
           </>

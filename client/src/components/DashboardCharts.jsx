@@ -12,13 +12,21 @@ import {
 import { avatarColorFor, avatarInitial } from "../lib/avatarColor.js";
 
 const palette = {
-  primary: "#5C2D91",
-  ok: "#22c55e",
-  danger: "#ef4444",
-  accent: "#00B4D8",
-  gold: "#F4A825",
-  uncertain: "#9CA3AF",
-  muted: "#ECEEF5"
+  primary: "#E91E8C",
+  ok: "#25D366",
+  danger: "#FF4B4B",
+  accent: "#FF9500",
+  gold: "#FF9500",
+  uncertain: "#FF9500",
+  muted: "#E5E7EB"
+};
+
+/** Diginet donut: ורוד, ירוק, כתום, אפור */
+const DONUT_COLORS = {
+  arrived: "#25D366",
+  notArrived: "#E91E8C",
+  uncertain: "#FF9500",
+  notAnswered: "#E5E7EB"
 };
 
 function CustomTooltip({ active, payload, label }) {
@@ -36,10 +44,10 @@ export function RSVPDonut({ stats }) {
   const total = stats.total || 0;
   const pct = total ? Math.round((stats.arrived / total) * 100) : 0;
   const data = [
-    { name: "מגיעים", value: stats.arrived, color: palette.primary },
-    { name: "לא מגיעים", value: stats.notArrived, color: palette.danger },
-    { name: "לא ענו", value: stats.notAnswered, color: palette.accent },
-    { name: "לא יודעים", value: stats.uncertain, color: palette.gold }
+    { name: "מגיעים", value: stats.arrived, color: DONUT_COLORS.arrived },
+    { name: "לא מגיעים", value: stats.notArrived, color: DONUT_COLORS.notArrived },
+    { name: "לא יודעים", value: stats.uncertain, color: DONUT_COLORS.uncertain },
+    { name: "לא ענו", value: stats.notAnswered, color: DONUT_COLORS.notAnswered }
   ].filter((d) => d.value > 0);
 
   return (
@@ -59,7 +67,7 @@ export function RSVPDonut({ stats }) {
               innerRadius={68}
               outerRadius={92}
               paddingAngle={3}
-              stroke="#ECEEF5"
+              stroke="#E5E7EB"
               strokeWidth={2}
             >
               {(data.length ? data : [{ color: palette.muted }]).map((entry, index) => (
