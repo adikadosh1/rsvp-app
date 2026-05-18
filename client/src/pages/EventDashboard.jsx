@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CalendarDays, MapPin, Upload, LayoutDashboard, Users, UserCheck, UserX, Clock } from "lucide-react";
 import GuestTable from "../components/GuestTable.jsx";
-import ProgressRing from "../components/ProgressRing.jsx";
+import ResponseRateCard from "../components/ResponseRateCard.jsx";
 import { RSVPDonut, ResponsesByHour, RecentResponses } from "../components/DashboardCharts.jsx";
 import CountdownFlip from "../components/CountdownFlip.jsx";
 import PageHeader from "../components/PageHeader.jsx";
@@ -202,12 +202,6 @@ export default function EventDashboard() {
 
   const sparkSeries = useMemo(() => (timeline?.byHour || []).map((h) => h.count || 0), [timeline]);
 
-  const ringColor = useMemo(() => {
-    if (responseRate >= 66) return "var(--ok)";
-    if (responseRate >= 33) return "var(--amber)";
-    return "var(--danger)";
-  }, [responseRate]);
-
   const filteredGuests = useMemo(() => {
     const q = query.trim();
     return guests
@@ -354,20 +348,11 @@ export default function EventDashboard() {
           </div>
 
           <aside className="event-dashboard-aside">
-            <div className="event-aside-card event-response-ring">
-              <h3 className="event-aside-title">אחוז מענה</h3>
-              <ProgressRing
-                value={responseRate}
-                max={100}
-                size={112}
-                stroke={10}
-                color={ringColor}
-                label={`${responseRate}%`}
-              />
-              <p className="event-aside-caption">
-                {stats.total - stats.notAnswered} מתוך {stats.total} ענו
-              </p>
-            </div>
+            <ResponseRateCard
+              rate={responseRate}
+              answered={stats.total - stats.notAnswered}
+              total={stats.total}
+            />
             <RecentResponses items={timeline?.recent || []} />
           </aside>
         </div>
