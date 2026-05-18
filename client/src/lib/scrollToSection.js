@@ -4,15 +4,22 @@ export function scrollToSection(sectionId, behavior = "smooth") {
     window.scrollTo({ top: 0, behavior });
     return;
   }
-  const el = document.getElementById(sectionId);
-  if (el) {
-    el.scrollIntoView({ behavior, block: "start" });
-    return;
-  }
+  const scroll = () => {
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior, block: "start" });
+    return Boolean(el);
+  };
+
+  if (scroll()) return;
+
   // Section may still be mounting (lazy / reveal)
-  window.setTimeout(() => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior, block: "start" });
-  }, 120);
+  let attempts = 0;
+  const retry = () => {
+    attempts += 1;
+    if (scroll() || attempts >= 8) return;
+    window.setTimeout(retry, 80);
+  };
+  window.setTimeout(retry, 80);
 }
 
 export function hashFromLocation(location) {

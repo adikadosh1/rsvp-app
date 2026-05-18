@@ -41,22 +41,29 @@ const NAV_SECTIONS = [
 
 function HomeNavLink({ sectionId, label, onNavigate }) {
   const location = useLocation();
+  const hash = sectionId === "home" ? "#home" : `#${sectionId}`;
   const to = sectionId === "home" ? "/" : `/#${sectionId}`;
 
+  function goToSection(e) {
+    onNavigate?.();
+    if (location.pathname !== "/") return;
+    e.preventDefault();
+    window.history.pushState(null, "", to);
+    scrollToSection(sectionId);
+  }
+
+  if (location.pathname !== "/") {
+    return (
+      <Link className="home-nav-link" to={to} onClick={() => onNavigate?.()}>
+        {label}
+      </Link>
+    );
+  }
+
   return (
-    <Link
-      className="home-nav-link"
-      to={to}
-      onClick={(e) => {
-        onNavigate?.();
-        if (location.pathname !== "/") return;
-        e.preventDefault();
-        window.history.pushState(null, "", to);
-        scrollToSection(sectionId);
-      }}
-    >
+    <a className="home-nav-link" href={hash} onClick={goToSection}>
       {label}
-    </Link>
+    </a>
   );
 }
 
