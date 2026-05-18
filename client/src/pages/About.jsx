@@ -1,6 +1,5 @@
-import Home from "./Home.jsx";
+import { Navigate } from "react-router-dom";
 
 export default function About() {
-  return <Home />;
+  return <Navigate to="/#about" replace />;
 }
-

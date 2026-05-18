@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import BrandMark from "../components/BrandMark.jsx";
 import BrandWordmark from "../components/BrandWordmark.jsx";
 import ScrollReveal from "../components/ScrollReveal.jsx";
+import { hashFromLocation, scrollToSection } from "../lib/scrollToSection.js";
 
 function Section({ id, title, subtitle, children }) {
   return (
@@ -30,15 +31,36 @@ function MobileMenuIcon() {
   );
 }
 
-function TopNav() {
-  const items = [
-    { href: "/", label: "דף הבית" },
-    { href: "/about", label: "אודות" },
-    { href: "/services", label: "השירותים שלנו" },
-    { href: "/pricing", label: "מחירון" },
-    { href: "/contact", label: "צור קשר" }
-  ];
+const NAV_SECTIONS = [
+  { id: "home", label: "דף הבית" },
+  { id: "about", label: "אודות" },
+  { id: "services", label: "השירותים שלנו" },
+  { id: "pricing", label: "מחירון" },
+  { id: "contact", label: "צור קשר" }
+];
 
+function HomeNavLink({ sectionId, label, onNavigate }) {
+  const location = useLocation();
+  const to = sectionId === "home" ? "/" : `/#${sectionId}`;
+
+  return (
+    <Link
+      className="home-nav-link"
+      to={to}
+      onClick={(e) => {
+        onNavigate?.();
+        if (location.pathname !== "/") return;
+        e.preventDefault();
+        window.history.pushState(null, "", to);
+        scrollToSection(sectionId);
+      }}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function TopNav() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -54,20 +76,9 @@ function TopNav() {
     };
   }, [open]);
 
-  const links = useMemo(
-    () =>
-      items.map((it) => (
-        <Link
-          key={it.href}
-          className="home-nav-link"
-          onClick={() => setOpen(false)}
-          to={it.href}
-        >
-          {it.label}
-        </Link>
-      )),
-    []
-  );
+  const links = NAV_SECTIONS.map((it) => (
+    <HomeNavLink key={it.id} sectionId={it.id} label={it.label} onNavigate={() => setOpen(false)} />
+  ));
 
   return (
     <nav className="home-nav" aria-label="תפריט ראשי">
@@ -152,6 +163,15 @@ function Stat({ value, label }) {
 }
 
 export default function Home() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const sectionId = hashFromLocation(location);
+    if (!sectionId) return;
+    const t = window.setTimeout(() => scrollToSection(sectionId), 80);
+    return () => window.clearTimeout(t);
+  }, [location.pathname, location.hash]);
+
   return (
     <div className="container home-page">
       <TopNav />
@@ -349,7 +369,7 @@ export default function Home() {
           המחיר הסופי תלוי בכמות מוזמנים, מורכבות ההושבה, וערוץ השליחה (SMS/WhatsApp). נשמח להתאים פתרון מדויק עבורך.
         </p>
         <p className="hint" style={{ marginTop: 8 }}>
-          רוצים לראות טווחי שוק ודוגמאות? <a href="/pricing#pricing">יש לנו מחקר קצר</a> (עם מקורות) — נשלח גם בוואטסאפ/מייל.
+          רוצים לראות טווחי שוק ודוגמאות? <a href="/#pricing">יש לנו מחקר קצר</a> (עם מקורות) — נשלח גם בוואטסאפ/מייל.
         </p>
       </Section>
 

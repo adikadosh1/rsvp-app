@@ -1,6 +1,5 @@
-import Home from "./Home.jsx";
+import { Navigate } from "react-router-dom";
 
 export default function Contact() {
-  return <Home />;
+  return <Navigate to="/#contact" replace />;
 }
-
