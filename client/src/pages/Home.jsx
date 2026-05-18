@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import BrandMark from "../components/BrandMark.jsx";
+import BrandWordmark from "../components/BrandWordmark.jsx";
 import ScrollReveal from "../components/ScrollReveal.jsx";
 
 function Section({ id, title, subtitle, children }) {
@@ -26,10 +28,6 @@ function MobileMenuIcon() {
       <span />
     </span>
   );
-}
-
-function BrandMark() {
-  return <img className="home-nav-mark" src="/brand/logo-mark.svg" alt="" aria-hidden="true" />;
 }
 
 function TopNav() {
@@ -75,12 +73,9 @@ function TopNav() {
     <nav className="home-nav" aria-label="תפריט ראשי">
       <div className="home-nav-inner">
         <a className="home-nav-brand" href="#home" aria-label="חזרה לדף הבית">
-          <BrandMark />
+          <BrandMark size="md" className="home-nav-mark" />
           <span className="home-nav-brand-text">
-            <span className="home-nav-eyebrow">RSVP PREMIUM</span>
-            <span className="home-nav-name">
-              הושבה <span>כיד המלך</span>
-            </span>
+            <BrandWordmark eyebrow="RSVP PREMIUM" compact />
           </span>
         </a>
         <div className="home-nav-links">{links}</div>
@@ -106,8 +101,9 @@ function TopNav() {
           <div className="home-nav-backdrop" onMouseDown={() => setOpen(false)} aria-hidden="true" />
           <div className="home-nav-drawer" role="dialog" aria-modal="true" aria-label="תפריט">
             <div className="home-nav-drawer-head">
-              <div className="home-nav-brand" style={{ fontSize: 18 }}>
-                הושבה <span>כיד המלך</span>
+              <div className="home-nav-brand home-nav-brand-drawer">
+                <BrandMark size="sm" className="home-nav-mark" />
+                <BrandWordmark eyebrow="RSVP PREMIUM" compact />
               </div>
               <button type="button" className="home-drawer-close" onClick={() => setOpen(false)} aria-label="סגור">
                 ×

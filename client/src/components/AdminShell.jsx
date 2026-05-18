@@ -4,6 +4,8 @@ import { CalendarPlus, Link2, LayoutDashboard, LogOut, Mail, Menu, Sparkles, Use
 import { clearToken } from "../lib/auth.js";
 import { apiFetch } from "../lib/api.js";
 import DarkModeToggle from "./DarkModeToggle.jsx";
+import BrandMark from "./BrandMark.jsx";
+import BrandWordmark from "./BrandWordmark.jsx";
 
 function NavItem({ to, icon: Icon, label }) {
   const loc = useLocation();
@@ -63,9 +65,7 @@ export default function AdminShell() {
           <span className="menu-ic" aria-hidden="true" />
         </button>
         <Link className="topbar-brand" to="/dashboard" aria-label="מעבר לדשבורד">
-          <span className="logo-mark-wrap" aria-hidden="true">
-            ✦
-          </span>
+          <BrandMark size="sm" />
           <span className="topbar-title">הושבה כיד המלך</span>
         </Link>
       </header>
@@ -74,16 +74,10 @@ export default function AdminShell() {
 
       <aside className={`sidebar ${mobileNavOpen ? "open" : ""}`} aria-label="תפריט ניהול">
         <div className="logo">
-          <div className="logo-eyebrow">PREMIUM RSVP</div>
           <div className="logo-row">
-            <span className="logo-mark-wrap" aria-hidden="true">
-              ✦
-            </span>
-            <div className="logo-text">
-              הושבה <span>כיד המלך</span>
-            </div>
+            <BrandMark size="md" />
+            <BrandWordmark eyebrow="PREMIUM RSVP" subtitle="פאנל ניהול יוקרתי" compact />
           </div>
-          <div className="logo-sub">פאנל ניהול יוקרתי</div>
         </div>
 
         <div className="sidebar-user">

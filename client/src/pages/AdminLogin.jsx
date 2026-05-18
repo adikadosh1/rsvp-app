@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api.js";
 import { setToken } from "../lib/auth.js";
+import BrandMark from "../components/BrandMark.jsx";
+import BrandWordmark from "../components/BrandWordmark.jsx";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -31,7 +33,10 @@ export default function AdminLogin() {
   return (
     <div className="login-wrap">
       <section className="card login-card">
-        <div className="login-eyebrow">ניהול</div>
+        <div className="login-brand">
+          <BrandMark size="lg" />
+          <BrandWordmark eyebrow="PREMIUM RSVP" subtitle="פאנל ניהול" compact />
+        </div>
         <h2 className="login-title">התחברות מנהל</h2>
         <p className="hint">כדי לנהל אירועים, העלאות ושליחות—נדרשת התחברות.</p>
         <form onSubmit={submit} className="form-grid">

@@ -1,41 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-label="RSVP PREMIUM - הושבה כיד המלך">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-label="????? ??? ???? ? RSVP PREMIUM">
   <defs>
-    <style>
-      .gold { fill: #d8b55b; }
-      .ink { fill: #0f1216; }
-      .muted { fill: #6a6f78; }
-      .strokeGold { stroke: #d8b55b; }
-    </style>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F4A825"/>
+      <stop offset="100%" stop-color="#d8b55b"/>
+    </linearGradient>
   </defs>
 
-  <!-- Mark -->
   <g transform="translate(70,66)">
-    <rect x="0" y="0" width="288" height="288" rx="36" fill="#0f1216"/>
+    <rect x="0" y="0" width="288" height="288" rx="36" fill="#3D1A6B"/>
     <g transform="translate(32,34)">
-      <!-- Crown + Throne (unique mark) -->
-      <path class="gold" opacity="0.96" d="M32 198h160v26H32v-26Z"/>
-      <path class="gold" opacity="0.92" d="M36 198 52 118 78 152 112 96 146 152 170 118 188 198 36 198Z"/>
-      <path class="gold" opacity="0.55" d="M56 118a10 10 0 1 0 0.001 0ZM112 92a10 10 0 1 0 0.001 0ZM168 118a10 10 0 1 0 0.001 0Z"/>
-      <path class="gold" opacity="0.36" d="M64 230v-56c0-28 22-50 50-50s50 22 50 50v56h-18v-56c0-18-14-32-32-32s-32 14-32 32v56H64Z"/>
-      <path class="gold" opacity="0.22" d="M46 232c0-16 7-27 20-34v28c-8 4-11 10-11 18H46Z"/>
-      <path class="gold" opacity="0.22" d="M182 232c0-16-7-27-20-34v28c8 4 11 10 11 18h9Z"/>
-      <path class="gold" opacity="0.16" d="M58 246c14-9 32-13 54-13s40 4 54 13c-16 9-34 13-54 13s-38-4-54-13Z"/>
-      <path class="strokeGold" opacity="0.44" d="M40 236c26-19 54-28 80-28s54 9 80 28" stroke-width="4" stroke-linecap="round" fill="none"/>
-      <path class="strokeGold" opacity="0.32" d="M22 248h220" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path fill="url(#goldGrad)" opacity="0.96" d="M32 198h160v26H32v-26Z"/>
+      <path fill="url(#goldGrad)" opacity="0.92" d="M36 198 52 118 78 152 112 96 146 152 170 118 188 198 36 198Z"/>
+      <path fill="url(#goldGrad)" opacity="0.55" d="M56 118a10 10 0 1 0 0.001 0ZM112 92a10 10 0 1 0 0.001 0ZM168 118a10 10 0 1 0 0.001 0Z"/>
+      <path fill="url(#goldGrad)" opacity="0.36" d="M64 230v-56c0-28 22-50 50-50s50 22 50 50v56h-18v-56c0-18-14-32-32-32s-32 14-32 32v56H64Z"/>
+      <path fill="url(#goldGrad)" opacity="0.22" d="M46 232c0-16 7-27 20-34v28c-8 4-11 10-11 18H46Z"/>
+      <path fill="url(#goldGrad)" opacity="0.22" d="M182 232c0-16-7-27-20-34v28c8 4 11 10 11 18h9Z"/>
+      <path fill="url(#goldGrad)" opacity="0.16" d="M58 246c14-9 32-13 54-13s40 4 54 13c-16 9-34 13-54 13s-38-4-54-13Z"/>
+      <path stroke="#F4A825" opacity="0.44" d="M40 236c26-19 54-28 80-28s54 9 80 28" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path stroke="#F4A825" opacity="0.32" d="M22 248h220" stroke-width="3" stroke-linecap="round" fill="none"/>
     </g>
   </g>
 
-  <!-- Wordmark -->
   <g transform="translate(410,120)">
-    <text x="0" y="0" font-family="Heebo, Arial, sans-serif" font-size="28" letter-spacing="0.28em" class="muted">
+    <text x="0" y="0" font-family="Heebo, Arial, sans-serif" font-size="28" letter-spacing="0.28em" fill="#6B7280">
       RSVP PREMIUM
     </text>
-    <text x="0" y="92" font-family="Heebo, Arial, sans-serif" font-size="88" font-weight="800" class="gold" direction="rtl" unicode-bidi="plaintext">
+    <text x="0" y="92" font-family="Heebo, Arial, sans-serif" font-size="88" font-weight="800" fill="url(#goldGrad)" direction="rtl" unicode-bidi="plaintext">
       ????? ??? ????
     </text>
-    <text x="0" y="150" font-family="Heebo, Arial, sans-serif" font-size="28" class="muted" direction="rtl" unicode-bidi="plaintext">
-      ????? ??????? ? ?????? ???? ? ????? ? ????? ???????
+    <text x="0" y="150" font-family="Heebo, Arial, sans-serif" font-size="28" fill="#6B7280" direction="rtl" unicode-bidi="plaintext">
+      ?????? ????? ??????? ???? (RSVP) ????????
     </text>
   </g>
 </svg>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, MessageCircle, Smartphone, Upload } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
+import BrandMark from "./BrandMark.jsx";
 import { useToast } from "./ToastProvider.jsx";
 
 const TEMPLATE_CHIPS = [
@@ -211,7 +212,7 @@ export default function SendMessage({ eventId, onSent }) {
         <div className="wa-preview" aria-label="תצוגה מקדימה WhatsApp">
           <div className="wa-preview-header">
             <span className="wa-preview-avatar" aria-hidden="true">
-              ה
+              <BrandMark size="sm" />
             </span>
             <span>הושבה כיד המלך</span>
           </div>
