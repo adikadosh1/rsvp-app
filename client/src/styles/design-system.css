@@ -144,15 +144,17 @@ body {
 .logo-mark {
   flex-shrink: 0;
   display: block;
+  width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(92, 45, 145, 0.2));
+  filter: drop-shadow(0 4px 14px rgba(244, 168, 37, 0.35));
   transition: transform 0.25s var(--ease), filter 0.25s var(--ease);
 }
 
-.logo-mark-sm { width: 28px; height: 28px; }
-.logo-mark-md { width: 40px; height: 40px; }
-.logo-mark-lg { width: 48px; height: 48px; }
-.logo-mark-xl { width: 56px; height: 56px; }
+/* Portrait crown — height-led sizing for balance with wordmark */
+.logo-mark-sm { height: 40px; }
+.logo-mark-md { height: 54px; }
+.logo-mark-lg { height: 68px; }
+.logo-mark-xl { height: 80px; }
 
 .brand-wordmark {
   display: grid;
@@ -190,7 +192,17 @@ body {
 }
 
 .brand-wordmark-compact .brand-wordmark-name {
-  font-size: 18px;
+  font-size: 17px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sidebar .logo-row {
+  gap: 12px;
 }
 
 .home-nav-brand-text .brand-wordmark-name {
@@ -220,11 +232,9 @@ body {
   filter: drop-shadow(0 4px 12px rgba(92, 45, 145, 0.18));
 }
 
-.wa-preview-avatar img,
 .wa-preview-avatar .logo-mark-sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  height: 36px;
+  width: auto;
 }
 
 .nav-section {

@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="????? ??? ???? — ???">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 235" role="img" aria-label="????? ??? ???? — ???">
   <defs>
     <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F4A825"/>
       <stop offset="100%" stop-color="#d8b55b"/>
     </linearGradient>
   </defs>
-
-  <rect x="56" y="56" width="400" height="400" rx="56" fill="#3D1A6B"/>
-
-  <g transform="translate(128,120) scale(1.15)" aria-hidden="true">
+  <g transform="translate(-8, -88)" aria-hidden="true">
     <path fill="url(#goldGrad)" opacity="0.96" d="M18 234h188v30H18v-30Z"/>
     <path fill="url(#goldGrad)" opacity="0.92" d="M22 198 44 120 76 158 112 98 148 158 180 120 202 198 22 198Z"/>
     <path fill="url(#goldGrad)" opacity="0.55" d="M48 120a12 12 0 1 0 0.001 0ZM112 92a12 12 0 1 0 0.001 0ZM176 120a12 12 0 1 0 0.001 0Z"/>

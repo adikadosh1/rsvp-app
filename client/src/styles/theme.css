@@ -348,8 +348,8 @@ a:hover {
 }
 
 .topbar-brand .logo-mark {
-  width: 24px;
-  height: 24px;
+  height: 40px;
+  width: auto;
 }
 
 .topbar-title {
@@ -399,10 +399,10 @@ a:hover {
 }
 
 .logo-mark {
-  width: 34px;
-  height: 34px;
+  height: 54px;
+  width: auto;
   flex-shrink: 0;
-  filter: drop-shadow(0 6px 16px rgba(111, 76, 255, 0.18));
+  filter: drop-shadow(0 4px 14px rgba(244, 168, 37, 0.35));
 }
 
 .logo-eyebrow {
@@ -701,8 +701,8 @@ a:hover {
 }
 
 .home-nav-mark {
-  width: 28px;
-  height: 28px;
+  height: 52px;
+  width: auto;
   flex-shrink: 0;
   transition: transform 0.25s var(--ease), filter 0.25s var(--ease);
 }
