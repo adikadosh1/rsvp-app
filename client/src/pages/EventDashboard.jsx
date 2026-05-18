@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { CalendarDays, MapPin, Upload, LayoutDashboard, Users, UserCheck, UserX, Clock } from "lucide-react";
 import GuestTable from "../components/GuestTable.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
 import { RSVPDonut, ResponsesByHour, RecentResponses } from "../components/DashboardCharts.jsx";
@@ -7,10 +8,21 @@ import CountdownFlip from "../components/CountdownFlip.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import StatCard from "../components/StatCard.jsx";
 import { useToast } from "../components/ToastProvider.jsx";
-import { Users, UserCheck, UserX, Clock } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
 import { getBrowserSupabase } from "../lib/supabaseBrowser.js";
 import { statusLabel } from "../utils/rsvpDisplay.js";
+
+function formatEventDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return null;
+  return d.toLocaleDateString("he-IL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
 
 export default function EventDashboard() {
   const { eventId } = useParams();
@@ -21,7 +33,7 @@ export default function EventDashboard() {
   const guestIdSetRef = useRef(new Set());
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all | מגיעים | לא מגיעים | לא יודעים | לא ענו
+  const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [timeline, setTimeline] = useState({ byHour: [], recent: [] });
   const [rt, setRt] = useState({ enabled: false, status: "off", lastUpdate: null });
@@ -56,7 +68,7 @@ export default function EventDashboard() {
     let t = null;
     let raf = null;
     let pending = false;
-    let mode = "poll10"; // poll10 | poll60
+    let mode = "poll10";
     const kick = () => {
       if (pending) return;
       pending = true;
@@ -80,7 +92,6 @@ export default function EventDashboard() {
 
     if (sb) {
       setRt({ enabled: true, status: "connecting", lastUpdate: new Date().toISOString() });
-      // Realtime refresh on guest/response changes.
       channel = sb
         .channel(`event-${eventId}`)
         .on(
@@ -100,11 +111,9 @@ export default function EventDashboard() {
           if (s === "on") setIntervalMode("poll60");
           if (s === "error") setIntervalMode("poll10");
         });
-      // Keep a slow safety refresh even on realtime (upgraded/downgraded by status above).
       setIntervalMode("poll60");
     } else {
       setRt({ enabled: false, status: "off", lastUpdate: new Date().toISOString() });
-      // Fallback polling when client supabase creds are not configured.
       setIntervalMode("poll10");
     }
 
@@ -176,10 +185,8 @@ export default function EventDashboard() {
       if (raw.includes("output=embed")) return raw;
       if (/^https?:\/\//i.test(raw)) {
         if (raw.includes("google.com/maps/embed")) return raw;
-        // Works for any share link by using it as a query; also works for non-google URLs (best effort).
         return mkEmbed(raw);
       }
-      // Plain address / venue / "lat,lng"
       return mkEmbed(raw);
     } catch (_e) {
       return null;
@@ -197,7 +204,7 @@ export default function EventDashboard() {
 
   const ringColor = useMemo(() => {
     if (responseRate >= 66) return "var(--ok)";
-    if (responseRate >= 33) return "var(--gold)";
+    if (responseRate >= 33) return "var(--amber)";
     return "var(--danger)";
   }, [responseRate]);
 
@@ -219,35 +226,66 @@ export default function EventDashboard() {
       });
   }, [guests, filter, query]);
 
+  const eventDateLabel = formatEventDate(event?.event_date || event?.date);
+  const venueLabel = String(event?.venue_name || "").trim() || null;
+
+  const rtLabel =
+    rt.enabled
+      ? rt.status === "on"
+        ? "מחובר בזמן אמת"
+        : rt.status === "error"
+          ? "Realtime לא זמין"
+          : "מתחבר..."
+      : "עדכון אוטומטי";
+
   return (
-    <div className="grid">
+    <div className="event-panel page-fade">
       <PageHeader
-        title="דשבורד אירוע"
-        subtitle={loading ? "טוען..." : event?.event_name || "—"}
+        title="פאנל אירוע"
         breadcrumbs={[
           { label: "מסך ראשי", to: "/dashboard" },
-          { label: "אירוע" }
+          { label: event?.event_name || "אירוע" }
         ]}
         actions={
-          <>
-            <span className={`rt-pill ${rt.status}`} role="status" aria-live="polite">
-              {rt.enabled
-                ? rt.status === "on"
-                  ? "מחובר בזמן אמת"
-                  : rt.status === "error"
-                    ? "Realtime לא זמין"
-                    : "מתחבר..."
-                : "Polling"}
-            </span>
-            <Link className="btn btn-primary" to={`/manage/${eventId}`}>
-              העלאה ושליחה
-            </Link>
-            <Link className="btn" to="/dashboard">
-              חזרה
-            </Link>
-          </>
+          <Link className="btn btn-ghost" to="/dashboard">
+            <LayoutDashboard size={16} aria-hidden="true" />
+            כל האירועים
+          </Link>
         }
       />
+
+      <header className="event-hero card">
+        <div className="event-hero-body">
+          <p className="event-hero-eyebrow">ניהול אירוע</p>
+          <h1 className="event-hero-title">{loading ? "טוען..." : event?.event_name || "אירוע"}</h1>
+          <div className="event-hero-meta">
+            {eventDateLabel ? (
+              <span className="event-meta-chip">
+                <CalendarDays size={15} aria-hidden="true" />
+                {eventDateLabel}
+              </span>
+            ) : null}
+            {venueLabel ? (
+              <span className="event-meta-chip">
+                <MapPin size={15} aria-hidden="true" />
+                {venueLabel}
+              </span>
+            ) : null}
+            <span className={`rt-pill ${rt.status}`} role="status" aria-live="polite">
+              {rtLabel}
+            </span>
+          </div>
+        </div>
+        <div className="event-hero-actions">
+          <Link className="btn btn-primary" to={`/manage/${eventId}`}>
+            <Upload size={16} aria-hidden="true" />
+            העלאה ושליחה
+          </Link>
+          <button className="btn btn-ghost" type="button" onClick={() => load().catch((e) => setNotice(e.message))}>
+            רענון נתונים
+          </button>
+        </div>
+      </header>
 
       {loading ? (
         <div className="stats-hero">
@@ -271,36 +309,62 @@ export default function EventDashboard() {
         </div>
       )}
 
-      <section className="card">
-        <div className="dashboard-grid">
-          <div className="dashboard-main">
-            <div className="widget" style={{ marginBottom: 20 }}>
-              <div className="widget-title">ספירה לאחור לאירוע</div>
-              <CountdownFlip eventDate={event?.event_date || event?.date} eventName={event?.event_name} />
-            </div>
-            <div className="widgets-row">
-              <div className="widget">
-                <RSVPDonut stats={stats} />
-              </div>
-              <div className="widget">
-                <ResponsesByHour items={responsesByHour} />
-              </div>
-            </div>
+      <section className="card event-panel-section" aria-labelledby="event-insights-heading">
+        <div className="event-section-head">
+          <div>
+            <h2 id="event-insights-heading" className="event-section-title">
+              תמונת מצב
+            </h2>
+            <p className="event-section-sub">ספירה לאחור, גרפים ותשובות אחרונות</p>
           </div>
-          <aside className="dashboard-aside">
-            <div className="card" style={{ padding: 20, marginBottom: 16, textAlign: "center" }}>
-              <div className="widget-title" style={{ marginBottom: 12 }}>
-                אחוז מענה
+        </div>
+
+        <div className="event-countdown-panel">
+          <div className="event-countdown-label">ספירה לאחור לאירוע</div>
+          <CountdownFlip eventDate={event?.event_date || event?.date} eventName={event?.event_name} />
+        </div>
+
+        <div className="dashboard-grid event-dashboard-grid">
+          <div className="event-dashboard-main">
+            <div className="event-charts-row">
+              <RSVPDonut stats={stats} />
+              <ResponsesByHour items={responsesByHour} />
+            </div>
+
+            {!loading && (
+              <div className="event-metrics-strip" aria-label="סיכום מנות וסטטוסים">
+                <div className="event-metric-pill">
+                  <span className="event-metric-label">לא יודעים</span>
+                  <strong className="event-metric-value">{stats.uncertain}</strong>
+                </div>
+                <div className="event-metric-pill">
+                  <span className="event-metric-label">סה״כ סועדים</span>
+                  <strong className="event-metric-value">{stats.totalDiners}</strong>
+                </div>
+                <div className="event-metric-pill">
+                  <span className="event-metric-label">מנות צמחוניות</span>
+                  <strong className="event-metric-value">{stats.totalVeg}</strong>
+                </div>
+                <div className="event-metric-pill">
+                  <span className="event-metric-label">מנות ילדים</span>
+                  <strong className="event-metric-value">{stats.totalKids}</strong>
+                </div>
               </div>
+            )}
+          </div>
+
+          <aside className="event-dashboard-aside">
+            <div className="event-aside-card event-response-ring">
+              <h3 className="event-aside-title">אחוז מענה</h3>
               <ProgressRing
                 value={responseRate}
                 max={100}
-                size={120}
+                size={112}
                 stroke={10}
                 color={ringColor}
-                label={`${responseRate}% מענה`}
+                label={`${responseRate}%`}
               />
-              <p className="hint" style={{ marginTop: 12 }}>
+              <p className="event-aside-caption">
                 {stats.total - stats.notAnswered} מתוך {stats.total} ענו
               </p>
             </div>
@@ -310,63 +374,62 @@ export default function EventDashboard() {
       </section>
 
       {mapSrc && (
-        <section className="card">
-          <div className="actions-row" style={{ justifyContent: "space-between" }}>
-            <h3 style={{ margin: 0 }}>מפה</h3>
+        <section className="card event-panel-section event-map-section" aria-labelledby="event-map-heading">
+          <div className="event-section-head event-section-head--row">
+            <div>
+              <h2 id="event-map-heading" className="event-section-title">
+                מיקום האירוע
+              </h2>
+              {venueLabel ? <p className="event-section-sub">{venueLabel}</p> : null}
+            </div>
             {mapHref && (
-              <a className="btn" href={mapHref} target="_blank" rel="noreferrer">
-                פתח בגוגל מפס
+              <a className="btn btn-accent" href={mapHref} target="_blank" rel="noreferrer">
+                פתח במפות
               </a>
             )}
           </div>
-          <div className="map-wrap">
+          <div className="map-wrap event-map-wrap">
             <iframe title="מפת האירוע" src={mapSrc} loading="lazy" />
           </div>
         </section>
       )}
 
-      {!loading && (
-        <section className="card">
-          <div className="stats-subrow">
-            <div className="pill-chip">לא יודעים: <strong>{stats.uncertain}</strong></div>
-            <div className="pill-chip">סה״כ סועדים: <strong>{stats.totalDiners}</strong></div>
-            <div className="pill-chip">מנות צמחוניות: <strong>{stats.totalVeg}</strong></div>
-            <div className="pill-chip">מנות ילדים: <strong>{stats.totalKids}</strong></div>
+      <section className="card event-panel-section event-guests-section" aria-labelledby="event-guests-heading">
+        <header className="event-guests-toolbar">
+          <div>
+            <h2 id="event-guests-heading" className="event-section-title">
+              אורחים ותשובות
+            </h2>
+            <p className="event-section-sub">
+              {loading ? "טוען..." : `${filteredGuests.length} מתוך ${guests.length} מוצגים`}
+            </p>
           </div>
-        </section>
-      )}
+          <div className="event-guests-filters">
+            <label className="field event-filter-field">
+              <span>חיפוש</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="שם או טלפון" />
+            </label>
+            <label className="field event-filter-field">
+              <span>סינון</span>
+              <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                <option value="all">הכל</option>
+                <option value="מגיעים">מגיעים</option>
+                <option value="לא מגיעים">לא מגיעים</option>
+                <option value="לא יודעים">לא יודעים</option>
+                <option value="לא ענו">לא ענו</option>
+              </select>
+            </label>
+          </div>
+        </header>
 
-      <section className="card">
-        <h3>חיפוש וסינון</h3>
-        <div className="actions">
-          <label className="field" style={{ minWidth: 220 }}>
-            <span>חיפוש</span>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="שם / טלפון" />
-          </label>
-          <label className="field" style={{ minWidth: 220 }}>
-            <span>פילטר</span>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-              <option value="all">הכל</option>
-              <option value="מגיעים">מגיעים</option>
-              <option value="לא מגיעים">לא מגיעים</option>
-              <option value="לא יודעים">לא יודעים</option>
-              <option value="לא ענו">לא ענו</option>
-            </select>
-          </label>
-          <button className="btn" type="button" onClick={() => load().catch((e) => setNotice(e.message))}>
-            רענן
-          </button>
-        </div>
-        {notice && <p className="status">{notice}</p>}
+        {notice ? <p className="banner banner-info event-notice">{notice}</p> : null}
+
+        {loading ? (
+          <div className="skeleton" style={{ height: 220, borderRadius: 14 }} />
+        ) : (
+          <GuestTable guests={filteredGuests} eventId={eventId} embedded />
+        )}
       </section>
-
-      {loading ? (
-        <section className="card">
-          <div className="skeleton" style={{ height: 180 }} />
-        </section>
-      ) : (
-        <GuestTable guests={filteredGuests} eventId={eventId} />
-      )}
     </div>
   );
 }

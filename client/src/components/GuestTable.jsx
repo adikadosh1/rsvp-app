@@ -25,7 +25,7 @@ function badgeClass(stat) {
   return "badge badge-muted";
 }
 
-export default function GuestTable({ guests, eventId }) {
+export default function GuestTable({ guests, eventId, embedded = false }) {
   const toast = useToast();
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
@@ -131,6 +131,9 @@ export default function GuestTable({ guests, eventId }) {
   );
 
   if (!guests.length) {
+    if (embedded) {
+      return <EmptyState title="אין אורחים עדיין" description="העלו קובץ CSV או ייבאו מאנשי קשר כדי להתחיל." />;
+    }
     return (
       <section className="card">
         <h3>טבלת אורחים ותשובות בזמן אמת</h3>
@@ -139,9 +142,8 @@ export default function GuestTable({ guests, eventId }) {
     );
   }
 
-  return (
-    <section className="card">
-      <h3>טבלת אורחים ותשובות בזמן אמת</h3>
+  const content = (
+    <>
       {selected.size > 0 && (
         <div className="bulk-bar" role="toolbar" aria-label="פעולות מרובות">
           <span>
@@ -247,6 +249,17 @@ export default function GuestTable({ guests, eventId }) {
           </button>
         </nav>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="event-guests-table">{content}</div>;
+  }
+
+  return (
+    <section className="card">
+      <h3>טבלת אורחים ותשובות בזמן אמת</h3>
+      {content}
     </section>
   );
 }
