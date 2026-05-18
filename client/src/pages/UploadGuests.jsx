@@ -350,7 +350,7 @@ export default function UploadGuests() {
   };
 
   return (
-    <div className="grid">
+    <div className="grid manage-page">
       <nav className="breadcrumb" aria-label="מיקום">
         <Link to="/dashboard">מסך ראשי</Link>
         <span className="sep">/</span>

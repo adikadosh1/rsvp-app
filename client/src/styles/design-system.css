@@ -1125,56 +1125,7 @@ a:not(.btn):not(.nav-item):not(.home-nav-link):not(.bottom-nav-item):hover {
   display: none;
 }
 
-@media (max-width: 768px) {
-  .stats-hero {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .mobile-bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 90;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
-    box-shadow: 0 -4px 24px rgba(233, 30, 140, 0.1);
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-    justify-content: space-around;
-    gap: 4px;
-  }
-
-  .bottom-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 4px;
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    font-size: 11px;
-    font-weight: 600;
-    background: transparent;
-    border: none;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .bottom-nav-item.active {
-    color: var(--primary);
-    background: var(--bg-secondary);
-  }
-
-  .admin-main {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
-  }
-
-  .admin-topbar {
-    display: flex;
-  }
-}
+/* Mobile admin nav + layout: see responsive.css */
 
 /* ===== Event panel layout ===== */
 .event-panel {
