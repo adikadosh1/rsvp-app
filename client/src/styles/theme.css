@@ -609,6 +609,35 @@ a:hover {
 
 .login-card {
   width: min(520px, 100%);
+  position: relative;
+}
+
+.login-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  max-width: 100%;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.login-back-link:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary-light);
+}
+
+.login-card .form-grid .btn-gold {
+  width: 100%;
+  justify-content: center;
 }
 
 .login-eyebrow {
@@ -1711,7 +1740,12 @@ a:focus-visible {
   position: fixed;
   inset-inline-start: 14px;
   inset-block-start: 14px;
+  inset-inline-end: auto;
+  top: 14px;
+  bottom: auto;
   z-index: 1200;
+  width: auto;
+  max-width: 10rem;
   padding: 10px 14px;
   border-radius: 999px;
   border: 1px solid var(--glass-border);
@@ -1719,6 +1753,11 @@ a:focus-visible {
   color: var(--text);
   font-weight: 700;
   letter-spacing: 0.01em;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   backdrop-filter: blur(16px) saturate(1.1);
   box-shadow: var(--shadow-card);
   cursor: pointer;

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { apiFetch } from "../lib/api.js";
 import { setToken } from "../lib/auth.js";
 import BrandMark from "../components/BrandMark.jsx";
@@ -33,6 +34,10 @@ export default function AdminLogin() {
   return (
     <div className="login-wrap">
       <section className="card login-card">
+        <Link to="/" className="login-back-link">
+          <ArrowRight size={16} aria-hidden="true" />
+          חזרה לדף הבית
+        </Link>
         <div className="login-brand">
           <BrandMark size="lg" />
           <BrandWordmark eyebrow="PREMIUM RSVP" subtitle="פאנל ניהול" compact />

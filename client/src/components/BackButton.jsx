@@ -4,10 +4,14 @@ export default function BackButton({ fallbackTo = "/" }) {
   const nav = useNavigate();
   const loc = useLocation();
 
-  // Show only when it makes sense: not on root/login and only when browser history exists.
   const hideOn = new Set(["/", "/login"]);
+  const isAdminRoute =
+    loc.pathname === "/dashboard" ||
+    loc.pathname.startsWith("/events/") ||
+    loc.pathname.startsWith("/manage/");
+
   const hasHistory = typeof window !== "undefined" ? window.history.length > 1 : false;
-  const shouldShow = hasHistory && !hideOn.has(loc.pathname);
+  const shouldShow = hasHistory && !hideOn.has(loc.pathname) && !isAdminRoute;
   if (!shouldShow) return null;
 
   const goBack = () => {

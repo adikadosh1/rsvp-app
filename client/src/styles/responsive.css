@@ -88,11 +88,22 @@ svg {
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  .app-shell:has(.admin-shell) .back-fab {
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  .back-fab {
+    top: max(12px, env(safe-area-inset-top, 0px));
+    inset-block-start: max(12px, env(safe-area-inset-top, 0px));
     inset-inline-start: 12px;
-    padding: 10px 12px;
+    inset-inline-end: auto;
+    bottom: auto;
+    width: auto;
+    max-width: min(9rem, calc(100vw - 24px));
+    white-space: nowrap;
+    padding: 10px 14px;
     font-size: 13px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .toast-stack {
