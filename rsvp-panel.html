@@ -449,6 +449,8 @@ body::after {
   <div class="nav-item"><span class="nav-icon">◇</span> אירועים</div>
   <div class="nav-item"><span class="nav-icon">◈</span> אורחים</div>
   <div class="nav-item"><span class="nav-icon">◇</span> שליחת הודעות</div>
+  <div class="nav-section">לאנשי מקצוע</div>
+  <div class="nav-item"><span class="nav-icon">◈</span> קישור לבעל אירוע <span style="font-size:9px;color:var(--gold3);margin-right:auto;">/start</span></div>
   <div class="nav-section">דוחות</div>
   <div class="nav-item"><span class="nav-icon">◈</span> סטטיסטיקות</div>
   <div class="nav-item"><span class="nav-icon">◇</span> ייצוא נתונים</div>
@@ -567,12 +569,12 @@ body::after {
           </div>
 
           <div style="font-size:10px;color:var(--white3);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.12em;">תוכן ההודעה</div>
-          <textarea class="message-box">שלום {שם} 👋
-הוזמנת לחתונה של לירון ואיתי ב-15.6.26.
+          <textarea class="message-box">שלום {{שם}} 👋
+הוזמנת לחתונה של לירון ואיתי ב-15.6.26 ב{{מקום}}, בתאריך {{תאריך}}.
 
 האם תגיע/י? לחץ/י כאן:
-{קישור}</textarea>
-          <div style="font-size:11px;color:var(--white3);margin-top:5px;">✦ {שם} ו-{קישור} יוחלפו אוטומטית</div>
+{{לינק}}</textarea>
+          <div style="font-size:11px;color:var(--white3);margin-top:5px;">✦ {{שם}}, {{לינק}}, {{אירוע}}, {{תאריך}} ו-{{מקום}} יוחלפו אוטומטית</div>
 
           <div class="reminder-row">
             <div class="reminder-text">שלח תזכורת למי שלא ענה</div>
